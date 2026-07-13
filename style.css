@@ -1,0 +1,405 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Share+Tech+Mono&display=swap');
+
+/* Default variables - Classic Win95 */
+:root {
+  --bg-color: #c0c0c0;
+  --bg-panel: #d4d0c8;
+  --text-main: #000000;
+  --text-muted: #808080;
+  --border-light: #ffffff;
+  --border-dark: #404040;
+  --border-dark-shadow: #808080;
+  --accent: #000080;
+  --accent-text: #ffffff;
+  --screen-bg: #000800;
+  --screen-text: #39ff14;
+  --screen-glow: rgba(57, 255, 20, 0.4);
+  --btn-bg: #d4d0c8;
+  --btn-text: #000000;
+  --slider-track: #808080;
+  --slider-thumb: #d4d0c8;
+  --glow-intensity: 0px 0px 8px;
+}
+
+/* Skins */
+[data-theme="Classic"] {
+  --bg-color: #c0c0c0;
+  --bg-panel: #d4d0c8;
+  --text-main: #000000;
+  --text-muted: #808080;
+  --border-light: #ffffff;
+  --border-dark: #404040;
+  --border-dark-shadow: #808080;
+  --accent: #000080;
+  --accent-text: #ffffff;
+  --screen-bg: #000a00;
+  --screen-text: #39ff14;
+  --screen-glow: rgba(57, 255, 20, 0.4);
+  --btn-bg: #d4d0c8;
+  --btn-text: #000000;
+  --slider-track: #808080;
+  --slider-thumb: #d4d0c8;
+  --glow-intensity: 0px 0px 6px;
+}
+
+[data-theme="Dark"] {
+  --bg-color: #121212;
+  --bg-panel: #1e1e1e;
+  --text-main: #e0e0e0;
+  --text-muted: #666666;
+  --border-light: #3d3d3d;
+  --border-dark: #000000;
+  --border-dark-shadow: #0c0c0c;
+  --accent: #bb86fc;
+  --accent-text: #000000;
+  --screen-bg: #050508;
+  --screen-text: #cfbcff;
+  --screen-glow: rgba(187, 134, 252, 0.5);
+  --btn-bg: #2d2d2d;
+  --btn-text: #e0e0e0;
+  --slider-track: #121212;
+  --slider-thumb: #3d3d3d;
+  --glow-intensity: 0px 0px 10px;
+}
+
+[data-theme="Hacker"] {
+  --bg-color: #030803;
+  --bg-panel: #071207;
+  --text-main: #33ff33;
+  --text-muted: #0d440d;
+  --border-light: #22aa22;
+  --border-dark: #020702;
+  --border-dark-shadow: #003300;
+  --accent: #33ff33;
+  --accent-text: #000000;
+  --screen-bg: #010401;
+  --screen-text: #33ff33;
+  --screen-glow: rgba(51, 255, 51, 0.6);
+  --btn-bg: #091709;
+  --btn-text: #33ff33;
+  --slider-track: #020702;
+  --slider-thumb: #22aa22;
+  --glow-intensity: 0px 0px 12px;
+}
+
+[data-theme="Vaporwave"] {
+  --bg-color: #1a0826;
+  --bg-panel: #2a113b;
+  --text-main: #ff71ce;
+  --text-muted: #01cdfe;
+  --border-light: #b967ff;
+  --border-dark: #051833;
+  --border-dark-shadow: #01cdfe;
+  --accent: #01cdfe;
+  --accent-text: #ffffff;
+  --screen-bg: #12031c;
+  --screen-text: #05ffa1;
+  --screen-glow: rgba(5, 255, 161, 0.7);
+  --btn-bg: #3c1e54;
+  --btn-text: #ff71ce;
+  --slider-track: #12031c;
+  --slider-thumb: #b967ff;
+  --glow-intensity: 0px 0px 12px;
+}
+
+[data-theme="Hot Dog"] {
+  --bg-color: #000000;
+  --bg-panel: #cc0000;
+  --text-main: #ffff00;
+  --text-muted: #ffffff;
+  --border-light: #ff6666;
+  --border-dark: #550000;
+  --border-dark-shadow: #000000;
+  --accent: #ffff00;
+  --accent-text: #000000;
+  --screen-bg: #000000;
+  --screen-text: #ffff00;
+  --screen-glow: rgba(255, 255, 0, 0.8);
+  --btn-bg: #aa0000;
+  --btn-text: #ffff00;
+  --slider-track: #000000;
+  --slider-thumb: #ffff00;
+  --glow-intensity: 0px 0px 10px;
+}
+
+[data-theme="GameBoy"] {
+  --bg-color: #8b956d;
+  --bg-panel: #9bbc0f;
+  --text-main: #0f380f;
+  --text-muted: #306230;
+  --border-light: #c4cfa1;
+  --border-dark: #306230;
+  --border-dark-shadow: #0f380f;
+  --accent: #306230;
+  --accent-text: #9bbc0f;
+  --screen-bg: #8b956d;
+  --screen-text: #0f380f;
+  --screen-glow: rgba(48, 98, 48, 0.2);
+  --btn-bg: #8b956d;
+  --btn-text: #0f380f;
+  --slider-track: #306230;
+  --slider-thumb: #0f380f;
+  --glow-intensity: none;
+}
+
+/* Typography styles */
+.font-8bit {
+  font-family: 'Press Start 2P', cursive, sans-serif;
+  font-size: 0.65rem;
+  line-height: 1.5;
+  letter-spacing: -0.5px;
+}
+
+.font-dos {
+  font-family: 'VT323', monospace;
+  font-size: 1.15rem;
+  line-height: 1.2;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Retro Windows / App layout containers */
+.retro-window {
+  background-color: var(--bg-panel);
+  border-top: 3px solid var(--border-light);
+  border-left: 3px solid var(--border-light);
+  border-right: 3px solid var(--border-dark);
+  border-bottom: 3px solid var(--border-dark);
+  box-shadow: 1px 1px 0px var(--border-dark-shadow), inset 1px 1px 0px var(--border-light);
+}
+
+.retro-window-inner {
+  border-top: 2px solid var(--border-dark);
+  border-left: 2px solid var(--border-dark);
+  border-right: 2px solid var(--border-light);
+  border-bottom: 2px solid var(--border-light);
+  background-color: var(--bg-panel);
+}
+
+/* 3D pushable button design */
+.retro-btn {
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+  border-top: 2px solid var(--border-light);
+  border-left: 2px solid var(--border-light);
+  border-right: 2px solid var(--border-dark);
+  border-bottom: 2px solid var(--border-dark);
+  box-shadow: inset 1px 1px 0px var(--border-light);
+  transition: all 0.05s ease;
+  user-select: none;
+}
+
+.retro-btn:active, .retro-btn.active {
+  border-top: 2px solid var(--border-dark);
+  border-left: 2px solid var(--border-dark);
+  border-right: 2px solid var(--border-light);
+  border-bottom: 2px solid var(--border-light);
+  box-shadow: inset 1px 1px 0px var(--border-dark-shadow);
+  transform: translate(1px, 1px);
+}
+
+/* Inset panels like LCD screen, inputs, search boxes */
+.retro-inset {
+  background-color: var(--screen-bg);
+  border-top: 2px solid var(--border-dark);
+  border-left: 2px solid var(--border-dark);
+  border-right: 2px solid var(--border-light);
+  border-bottom: 2px solid var(--border-light);
+}
+
+/* LCD/CRT screen rendering */
+.crt-screen {
+  background-color: var(--screen-bg);
+  color: var(--screen-text);
+  text-shadow: var(--screen-glow) var(--glow-intensity);
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+}
+
+/* Scanline Effect */
+.crt-screen::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.04));
+  background-size: 100% 4px, 6px 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* CRT Screen Glare */
+.crt-screen::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: radial-gradient(circle at 50% 15%, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
+  pointer-events: none;
+  z-index: 11;
+}
+
+/* Custom retro ranges */
+input[type="range"].retro-range {
+  -webkit-appearance: none;
+  width: 100%;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="range"].retro-range:focus {
+  outline: none;
+}
+
+/* Track styling */
+input[type="range"].retro-range::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 6px;
+  background: var(--slider-track);
+  border-top: 1px solid var(--border-dark);
+  border-left: 1px solid var(--border-dark);
+  border-right: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+}
+
+input[type="range"].retro-range::-moz-range-track {
+  width: 100%;
+  height: 6px;
+  background: var(--slider-track);
+  border-top: 1px solid var(--border-dark);
+  border-left: 1px solid var(--border-dark);
+  border-right: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+}
+
+/* Thumb styling */
+input[type="range"].retro-range::-webkit-slider-thumb {
+  height: 18px;
+  width: 10px;
+  background: var(--slider-thumb);
+  border-top: 2px solid var(--border-light);
+  border-left: 2px solid var(--border-light);
+  border-right: 2px solid var(--border-dark);
+  border-bottom: 2px solid var(--border-dark);
+  box-shadow: inset 1px 1px 0px var(--border-light);
+  cursor: pointer;
+  -webkit-appearance: none;
+  margin-top: -6px; /* center thumb on webkit */
+}
+
+input[type="range"].retro-range::-moz-range-thumb {
+  height: 18px;
+  width: 10px;
+  background: var(--slider-thumb);
+  border-top: 2px solid var(--border-light);
+  border-left: 2px solid var(--border-light);
+  border-right: 2px solid var(--border-dark);
+  border-bottom: 2px solid var(--border-dark);
+  box-shadow: inset 1px 1px 0px var(--border-light);
+  cursor: pointer;
+}
+
+/* Select overrides for retro UI */
+select.retro-select {
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+  border-top: 2px solid var(--border-dark);
+  border-left: 2px solid var(--border-dark);
+  border-right: 2px solid var(--border-light);
+  border-bottom: 2px solid var(--border-light);
+  box-shadow: inset 1px 1px 0px var(--border-dark-shadow);
+  padding: 2px 6px;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+select.retro-select option {
+  background-color: var(--bg-panel);
+  color: var(--text-main);
+}
+
+/* Scrollbars overrides */
+.retro-scroll::-webkit-scrollbar {
+  width: 16px;
+  background-color: var(--bg-panel);
+}
+
+.retro-scroll::-webkit-scrollbar-track {
+  background-image: radial-gradient(var(--bg-color) 25%, transparent 25%), radial-gradient(var(--bg-color) 25%, transparent 25%);
+  background-size: 4px 4px;
+  background-position: 0 0, 2px 2px;
+  border-left: 2px solid var(--border-dark);
+}
+
+.retro-scroll::-webkit-scrollbar-thumb {
+  background-color: var(--btn-bg);
+  border-top: 2px solid var(--border-light);
+  border-left: 2px solid var(--border-light);
+  border-right: 2px solid var(--border-dark);
+  border-bottom: 2px solid var(--border-dark);
+  box-shadow: inset 1px 1px 0px var(--border-light);
+}
+
+.retro-scroll::-webkit-scrollbar-button {
+  display: block;
+  height: 16px;
+  width: 16px;
+  background-color: var(--btn-bg);
+  border-top: 2px solid var(--border-light);
+  border-left: 2px solid var(--border-light);
+  border-right: 2px solid var(--border-dark);
+  border-bottom: 2px solid var(--border-dark);
+}
+
+/* LED blink elements */
+.led-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
+  background-color: #400000;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.led-indicator.active {
+  background-color: #ff0000;
+  box-shadow: 0 0 6px #ff0000, inset 0 1px 1px rgba(255,255,255,0.8);
+}
+
+/* Scrolling Text animation for Song Ticker */
+.scrolling-ticker-container {
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+
+.scrolling-ticker {
+  display: inline-block;
+  padding-left: 100%;
+  animation: ticker 15s linear infinite;
+}
+
+@keyframes ticker {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-100%, 0, 0); }
+}
+
+/* Layout modifications to keep buttons robust */
+.control-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* Playlist active selection shadow */
+.playlist-item.active {
+  background-color: var(--accent);
+  color: var(--accent-text);
+  text-shadow: none;
+}
