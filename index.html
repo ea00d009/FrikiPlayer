@@ -567,14 +567,50 @@
 
         input[type="range"].crt-slider::-webkit-slider-thumb {}
 
+        /* Blinking PLAYING status */
+        @keyframes blink-status {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+        .status-blink {
+            animation: blink-status 1s step-end infinite;
+        }
+
         /* Custom vertical range slider styling */
         input[type="range"].slider-vertical {
-            -webkit-appearance: slider-vertical;
-            writing-mode: bt-lr;
-            width: 8px;
+            writing-mode: vertical-lr;
+            direction: rtl;
+            -webkit-appearance: none;
+            appearance: none;
+            background: var(--win-border-dark);
+            width: 6px;
             height: 90px;
-            background: #808080;
+            border: 1px solid var(--win-border-black);
+            outline: none;
             cursor: pointer;
+        }
+
+        input[type="range"].slider-vertical::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 8px;
+            background: var(--btn-bg);
+            border: 1px solid var(--win-border-black);
+            box-shadow: inset -2px -2px 0px var(--win-border-dark), inset 2px 2px 0px var(--win-border-light);
+            cursor: pointer;
+        }
+
+        input[type="range"].slider-vertical::-moz-range-thumb {
+            width: 14px;
+            height: 8px;
+            background: var(--btn-bg);
+            border: 1px solid var(--win-border-black);
+            box-shadow: inset -2px -2px 0px var(--win-border-dark), inset 2px 2px 0px var(--win-border-light);
+            cursor: pointer;
+        }
+
+        input[type="checkbox"] {
+            accent-color: var(--header-bg, #000080);
         }
     </style>
 </head>
@@ -596,136 +632,186 @@
     </div>
 
     <!-- FrikiPlayer main application container -->
-    <div id="player-app" class="pixel-window w-full max-w-2xl flex flex-col shadow-2xl z-20">
+    <div id="player-app" class="w-full max-w-3xl flex flex-col shadow-2xl z-20">
 
-        <!-- Barra de título -->
-        <div class="window-header px-3 py-2 flex flex-wrap justify-between items-center cursor-move gap-y-2">
-            <div class="flex items-center gap-2 min-w-0 flex-1 mr-2 pointer-events-none">
-                <span class="text-[length:var(--fz-tiny)] sm:text-[length:var(--fz-small)] truncate block w-full">💾
-                    FrikiPlayer_v1.0.exe</span>
+        <!-- Fila Superior: Controles Principales + Volumen -->
+        <div class="flex flex-col md:flex-row items-stretch gap-2 w-full min-w-0">
+
+            <!-- Panel Principal (Header + CRT + Botones) -->
+            <div class="pixel-window flex-1 flex flex-col min-w-[480px]">
+                <!-- Barra de título -->
+                <div class="window-header px-3 py-2 flex flex-wrap justify-between items-center cursor-move gap-y-2">
+                    <div class="flex items-center gap-2 min-w-0 flex-1 mr-2 pointer-events-none">
+                        <span class="text-[length:var(--fz-tiny)] sm:text-[length:var(--fz-small)] truncate block w-full">💾
+                            FrikiPlayer_v1.0.exe</span>
+                    </div>
+                    <div class="flex gap-1 items-center shrink-0 ml-auto">
+                        <select id="font-selector"
+                            class="pixel-btn text-[length:var(--fz-micro)] py-1 px-0.5 outline-none max-w-[85px] sm:max-w-[130px] truncate"
+                            title="Tipografía">
+                            <option value="press">8-Bit (Normal)</option>
+                            <option value="press-large">8-Bit (Grande)</option>
+                            <option value="vt323">DOS (Normal)</option>
+                            <option value="vt323-large">DOS (Grande)</option>
+                        </select>
+                        <select id="theme-selector"
+                            class="pixel-btn text-[length:var(--fz-micro)] py-1 px-0.5 outline-none max-w-[85px] sm:max-w-[130px] truncate"
+                            title="Tema Visual">
+                            <option value="classic">Clásico</option>
+                            <option value="dark">Dark Mode</option>
+                            <option value="hacker">Terminal</option>
+                            <option value="vaporwave">Vaporwave</option>
+                            <option value="hotdog">Hot Dog (Win 3.1)</option>
+                            <option value="gameboy">GameBoy</option>
+                            <option value="hercules">Monitor Hércules</option>
+                            <option value="aimp">AIMP Classic (Amber)</option>
+                            <option value="winamp">Winamp Bento (Cyan)</option>
+                            <option value="wmp">WMP 11 (Vista Aero)</option>
+                        </select>
+                        <button id="btn-toggle-volume" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold active-toggle"
+                            title="Mostrar/Ocultar Volumen">🔊 VOL</button>
+                        <button id="btn-open-eq" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold"
+                            title="Equalizador Grafico">🎛️ EQ</button>
+                        <button id="btn-open-avs" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold"
+                            title="Visualizador AVS">✨ AVS</button>
+                        <button id="btn-minimize" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold">_</button>
+                    </div>
+                </div>
+
+                <!-- Cuerpo del reproductor: CRT y Mandos -->
+                <div class="p-4 sm:p-5 flex flex-col gap-4 flex-1 justify-between">
+                    <!-- CRT Screen split into Text Display & Visualizer Canvas -->
+                    <div class="crt-screen h-24 sm:h-32 p-4 flex gap-4">
+                        <!-- Left panel (Text info & timeline) -->
+                        <div class="flex-1 flex flex-col justify-between min-w-0">
+                            <div class="flex justify-between items-center text-[length:var(--fz-micro)] sm:text-[length:var(--fz-tiny)] crt-text-dim gap-1 overflow-hidden" style="font-variant-numeric: tabular-nums;">
+                                <span id="bitrate-display" class="shrink-0 whitespace-nowrap">BITRATE: ---kbps</span>
+                                <div class="flex items-center gap-1 select-none shrink-0">
+                                    <span class="whitespace-nowrap">VOL:</span>
+                                    <input id="volume-knob" type="range" min="0" max="100" value="80"
+                                        class="crt-slider w-12 cursor-pointer" title="Volumen">
+                                </div>
+                                <span id="status-indicator" class="shrink-0 whitespace-nowrap">STOPPED</span>
+                            </div>
+                            <div class="overflow-hidden w-full text-[length:var(--fz-small)] sm:text-[length:var(--fz-base)] mt-2 crt-text-color">
+                                <div id="track-display" class="marquee-text">
+                                    -- READY --
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <span id="time-current" class="text-[length:var(--fz-micro)] crt-text-dim">00:00</span>
+                                <div id="progress-container" class="flex-1 h-2 border crt-border crt-bg-dim cursor-pointer relative">
+                                    <div id="progress-bar" class="h-full crt-bg-solid w-0 transition-all duration-100 pointer-events-none"></div>
+                                    <div id="progress-handle" class="absolute top-[-4px] w-1.5 h-4 crt-bg-solid border crt-border pointer-events-none transform -translate-x-1/2" style="left: 0%;"></div>
+                                </div>
+                                <span id="time-total" class="text-[length:var(--fz-micro)] crt-text-dim">00:00</span>
+                            </div>
+                        </div>
+                        <!-- Right panel (Canvas visualizer) -->
+                        <div class="w-20 sm:w-28 h-full border crt-border shrink-0 relative overflow-hidden flex items-center justify-center" style="background-color: var(--crt-bg)">
+                            <canvas id="visualizer-canvas" class="w-full h-full block"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Controls Panel -->
+                    <div class="flex justify-center flex-nowrap items-stretch gap-1.5 theme-controls-bg p-3 border-2 shadow-[inset_-2px_-2px_0px_var(--win-border-dark),inset_2px_2px_0px_var(--win-border-light)]">
+                        <button id="btn-shuffle" class="pixel-btn flex items-center justify-center whitespace-nowrap px-2 py-1.5 text-[length:var(--fz-tiny)] sm:text-[length:var(--fz-small)]">&#128256; SHUFFLE</button>
+                        <button id="btn-prev" class="pixel-btn flex items-center justify-center whitespace-nowrap px-2 py-1.5 text-[length:var(--fz-small)]">&#9664;&#9664;</button>
+                        <button id="btn-play" class="pixel-btn flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-[length:var(--fz-small)] font-bold btn-text-blue w-[105px]">&#9654; PLAY</button>
+                        <button id="btn-stop" class="pixel-btn flex items-center justify-center whitespace-nowrap px-2 py-1.5 text-[length:var(--fz-small)] btn-text-red">&#9632;</button>
+                        <button id="btn-next" class="pixel-btn flex items-center justify-center whitespace-nowrap px-2 py-1.5 text-[length:var(--fz-small)]">&#9654;&#9654;</button>
+                        <button id="btn-repeat" class="pixel-btn flex items-center justify-center whitespace-nowrap px-2 py-1.5 text-[length:var(--fz-tiny)] sm:text-[length:var(--fz-small)]">&#128257; REPEAT</button>
+                    </div>
+                </div>
             </div>
-            <div class="flex gap-1 items-center shrink-0 ml-auto">
-                <select id="font-selector"
-                    class="pixel-btn text-[length:var(--fz-micro)] py-1 px-0.5 outline-none max-w-[85px] sm:max-w-[130px] truncate"
-                    title="Tipografía">
-                    <option value="press">8-Bit (Normal)</option>
-                    <option value="press-large">8-Bit (Grande)</option>
-                    <option value="vt323">DOS (Normal)</option>
-                    <option value="vt323-large">DOS (Grande)</option>
-                </select>
-                <select id="theme-selector"
-                    class="pixel-btn text-[length:var(--fz-micro)] py-1 px-0.5 outline-none max-w-[85px] sm:max-w-[130px] truncate"
-                    title="Tema Visual">
-                    <option value="classic">Clásico</option>
-                    <option value="dark">Dark Mode</option>
-                    <option value="hacker">Terminal</option>
-                    <option value="vaporwave">Vaporwave</option>
-                    <option value="hotdog">Hot Dog (Win 3.1)</option>
-                    <option value="gameboy">GameBoy</option>
-                    <option value="hercules">Monitor Hércules</option>
-                    <option value="aimp">AIMP Classic (Amber)</option>
-                    <option value="winamp">Winamp Bento (Cyan)</option>
-                    <option value="wmp">WMP 11 (Vista Aero)</option>
-                </select>
-                <button id="btn-open-eq" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold"
-                    title="Equalizador Grafico">🎛️ EQ</button>
-                <button id="btn-open-avs" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold"
-                    title="Visualizador AVS">✨ AVS</button>
-                <button id="btn-minimize" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold">_</button>
+
+            <!-- Panel de Volumen Derecho (Gran Perilla) -->
+            <div id="player-volume-panel" class="pixel-window w-48 shrink-0 flex flex-col">
+                <div class="window-header px-2 py-1 flex justify-between items-center bg-[var(--header-bg)] text-[var(--header-text)] text-[10px] font-bold border-b-2 border-win-border-black">
+                    <span>VOLUMEN</span>
+                    <button id="btn-volume-close" class="pixel-btn px-1.5 py-0.5 text-[8px] font-bold" title="Cerrar Panel">X</button>
+                </div>
+                <div class="flex-1 p-3 flex flex-col items-center justify-between gap-3 select-none">
+                    <!-- LED Display -->
+                    <div class="w-full bg-[var(--crt-bg)] border border-win-border-dark rounded py-1 text-center text-[var(--crt-text)] font-bold text-[11px] font-mono tracking-wider shadow-[inset_0px_0px_4px_rgba(0,255,0,0.2)]">
+                        LEVEL: <span id="volume-readout-large">80%</span>
+                    </div>
+                    <!-- Big Knob Canvas (Contenedor Cuadrado) -->
+                    <div class="relative w-full aspect-square flex items-center justify-center">
+                        <canvas id="volume-knob-large" width="140" height="140" class="cursor-pointer block" title="Volumen (Arrastra)"></canvas>
+                    </div>
+                    <!-- Mute Button -->
+                    <button id="btn-volume-mute" class="pixel-btn w-full py-1 text-[9px] font-bold" title="Silenciar">🔊 MUTE: OFF</button>
+                </div>
             </div>
+
         </div>
 
-        <!-- Cuerpo del reproductor -->
-        <div class="p-4 sm:p-6 flex flex-col gap-6">
-
-            <!-- CRT Screen split into Text Display & Visualizer Canvas -->
-            <div class="crt-screen h-24 sm:h-32 p-4 flex gap-4">
-
-                <!-- Left panel (Text info & timeline) -->
-                <div class="flex-1 flex flex-col justify-between min-w-0">
-                    <div
-                        class="flex justify-between items-center text-[length:var(--fz-micro)] sm:text-[length:var(--fz-tiny)] crt-text-dim gap-2">
-                        <span id="bitrate-display">BITRATE: ---kbps</span>
-                        <div class="flex items-center gap-1 select-none">
-                            <span>VOL:</span>
-                            <input type="range" id="volume-slider" min="0" max="100" value="80"
-                                class="crt-slider w-12 sm:w-16 cursor-pointer">
-                        </div>
-                        <span id="status-indicator">STOPPED</span>
+        <!-- Fila Inferior (Tabs & Playlist) -->
+        <div class="pixel-window w-full mt-2 p-4 flex flex-col">
+            <div class="flex flex-col gap-2 mb-2 px-1">
+                <div class="flex justify-between items-center text-[length:var(--fz-micro)] font-bold">
+                    <div class="flex gap-1">
+                        <button id="tab-playlist" class="pixel-btn px-1.5 py-0.5 text-[9px] font-bold text-black bg-[#C0C0C0] shadow-[inset_1px_1px_0px_#fff,inset_-1px_-1px_0px_#808080]">📂 COLA</button>
+                        <button id="tab-radio" class="pixel-btn px-1.5 py-0.5 text-[9px] font-bold text-black bg-[#C0C0C0] shadow-[inset_-1px_-1px_0px_#fff,inset_1px_1px_0px_#808080]">📻 RADIO FM</button>
                     </div>
-
-                    <div
-                        class="overflow-hidden w-full text-[length:var(--fz-small)] sm:text-[length:var(--fz-base)] mt-2 crt-text-color">
-                        <div id="track-display" class="marquee-text">
-                            -- READY --
-                        </div>
+                    <div class="flex gap-1.5 sm:gap-2">
+                        <button id="btn-open-lyrics" class="pixel-btn px-2 py-0.5 text-purple-800 text-[10px]">🎙️ LETRAS</button>
+                        <button id="btn-open-playlist-mgr" class="pixel-btn px-2 py-0.5 text-blue-800 text-[10px]">➕ EDITAR LISTA</button>
+                        <button id="btn-open-supabase-config" class="pixel-btn px-2 py-0.5 text-green-800 text-[10px]">☁️ NUBE</button>
                     </div>
-
-                    <div class="flex items-center gap-2 mt-2">
-                        <span id="time-current" class="text-[length:var(--fz-micro)] crt-text-dim">00:00</span>
-                        <div id="progress-container"
-                            class="flex-1 h-2 border crt-border crt-bg-dim cursor-pointer relative">
-                            <div id="progress-bar"
-                                class="h-full crt-bg-solid w-0 transition-all duration-100 pointer-events-none"></div>
-                            <div id="progress-handle"
-                                class="absolute top-[-4px] w-1.5 h-4 crt-bg-solid border crt-border pointer-events-none transform -translate-x-1/2"
-                                style="left: 0%;"></div>
-                        </div>
-                        <span id="time-total" class="text-[length:var(--fz-micro)] crt-text-dim">00:00</span>
-                    </div>
-                </div>
-
-                <!-- Right panel (Canvas visualizer) -->
-                <div class="w-20 sm:w-28 h-full border crt-border shrink-0 relative overflow-hidden flex items-center justify-center"
-                    style="background-color: var(--crt-bg)">
-                    <canvas id="visualizer-canvas" class="w-full h-full block"></canvas>
                 </div>
             </div>
 
-            <!-- Controls Panel -->
-            <div
-                class="flex justify-center flex-wrap items-center gap-2 sm:gap-4 theme-controls-bg p-3 border-2 shadow-[inset_-2px_-2px_0px_var(--win-border-dark),inset_2px_2px_0px_var(--win-border-light)]">
-                <button id="btn-shuffle"
-                    class="pixel-btn p-2 sm:p-3 text-[length:var(--fz-tiny)] sm:text-[length:var(--fz-small)]">
-                    &#128256; SHUFFLE
-                </button>
-                <button id="btn-prev" class="pixel-btn p-2 sm:p-3 text-[length:var(--fz-small)]">
-                    &#9664;&#9664;
-                </button>
-                <button id="btn-play"
-                    class="pixel-btn p-2 sm:p-3 text-[length:var(--fz-small)] font-bold btn-text-blue min-w-[80px]">
-                    &#9654; PLAY
-                </button>
-                <button id="btn-stop" class="pixel-btn p-2 sm:p-3 text-[length:var(--fz-small)] btn-text-red">
-                    &#9632;
-                </button>
-                <button id="btn-next" class="pixel-btn p-2 sm:p-3 text-[length:var(--fz-small)]">
-                    &#9654;&#9654;
-                </button>
-                <button id="btn-repeat"
-                    class="pixel-btn p-2 sm:p-3 text-[length:var(--fz-tiny)] sm:text-[length:var(--fz-small)]">
-                    &#128257; REPEAT
-                </button>
-
-            </div>
-
-            <div class="flex justify-between items-center text-[length:var(--fz-micro)] font-bold mb-[-12px] px-1">
-                <span class="text-white">📋 LISTA DE REPRODUCCIÓN</span>
-                <div class="flex gap-2">
-                    <button id="btn-open-lyrics" class="pixel-btn px-2 py-0.5 text-purple-800 text-[10px]">🎙️
-                        LETRAS</button>
-                    <button id="btn-open-playlist-mgr" class="pixel-btn px-2 py-0.5 text-blue-800 text-[10px]">➕ EDITAR
-                        LISTA</button>
-                    <button id="btn-open-supabase-config" class="pixel-btn px-2 py-0.5 text-green-800 text-[10px]">☁️
-                        CONECTAR NUBE</button>
-                </div>
-            </div>
-
-            <div
-                class="theme-list-container border-2 shadow-[inset_-2px_-2px_0px_var(--win-border-dark)] h-64 overflow-y-auto p-1">
+            <!-- Playlist Panel (Container Queue) -->
+            <div id="playlist-queue-container" class="theme-list-container border-2 shadow-[inset_-2px_-2px_0px_var(--win-border-dark)] h-64 overflow-y-auto p-1">
                 <ul id="playlist-container" class="text-[length:var(--fz-mini)] sm:text-[length:var(--fz-tiny)]">
                     <!-- Los items de la lista se inyectarán mediante JavaScript -->
                 </ul>
+            </div>
+
+            <!-- Radio Tuner Panel (Container FM) -->
+            <div id="radio-tuner-container" class="border-2 shadow-[inset_-2px_-2px_0px_var(--win-border-dark)] h-64 overflow-y-auto p-2 bg-[var(--win-bg)]" style="display: none;">
+                <div class="flex flex-col gap-2 h-full">
+                    <!-- Tuner LCD screen -->
+                    <div class="tuner-screen-retro p-2 flex flex-col justify-between h-20 shrink-0 rounded select-none">
+                        <div class="flex justify-between items-center text-[10px] font-bold">
+                            <span class="px-1 border border-[#33ffcc] rounded-[2px] text-[8px]">FM STEREO</span>
+                            <div class="flex items-center gap-1">
+                                <span class="text-[8px]">SEÑAL:</span>
+                                <div id="tuner-signal" class="tuner-signal-mini">
+                                    <span class="signal-bar-mini"></span>
+                                    <span class="signal-bar-mini"></span>
+                                    <span class="signal-bar-mini"></span>
+                                    <span class="signal-bar-mini"></span>
+                                </div>
+                            </div>
+                            <span id="tuner-stereo-led" class="tuner-led"></span>
+                        </div>
+                        <div class="text-center my-0.5">
+                            <span id="tuner-frequency-display" class="text-[24px] font-bold tracking-widest">87.50</span>
+                            <span class="text-[12px] ml-1 font-bold">MHz</span>
+                        </div>
+                        <div class="flex justify-between items-center text-[9px] leading-tight">
+                            <span id="tuner-station-display" class="truncate max-w-[170px]">BUSCANDO EMISORAS...</span>
+                            <span id="tuner-preset-display" class="font-mono">P-01</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Tuner buttons controls -->
+                    <div class="flex gap-1 items-center justify-between">
+                        <button id="btn-radio-seek-prev" class="pixel-btn flex-1 py-1 px-1 text-[9px] font-bold">◄◄ BUSCAR</button>
+                        <button id="btn-radio-play" class="pixel-btn flex-1 py-1 px-1 text-[9px] font-bold text-blue-800">▶ REPRODUCIR</button>
+                        <button id="btn-radio-seek-next" class="pixel-btn flex-1 py-1 px-1 text-[9px] font-bold">BUSCAR ►►</button>
+                    </div>
+
+                    <!-- Tuner presets/stations list -->
+                    <div class="flex-1 overflow-y-auto border border-gray-400 p-1 bg-[var(--list-bg)] rounded-[2px] h-20">
+                        <ul id="radio-station-list" class="text-[9px] font-mono text-[var(--list-text)]">
+                            <!-- Inyectadas dinámicamente -->
+                        </ul>
+                    </div>
+                </div>
             </div>
 
             <!-- Footer con créditos 
@@ -930,102 +1016,154 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
 
                 <!-- 60 Hz -->
                 <div class="flex flex-col items-center gap-1.5 flex-1 min-w-0">
-                    <span class="text-[8px] font-bold truncate text-black">60Hz</span>
+                    <span class="text-[8px] font-bold truncate">60Hz</span>
                     <div class="h-28 flex items-center justify-center relative">
                         <input type="range" data-band="0" min="-12" max="12" step="1" value="0" orient="vertical"
                             class="slider-vertical eq-band-slider h-24 cursor-pointer">
                     </div>
-                    <span class="text-[8px] font-mono text-black band-val">0dB</span>
+                    <span class="text-[8px] font-mono band-val">0dB</span>
                 </div>
 
                 <!-- 170 Hz -->
                 <div class="flex flex-col items-center gap-1.5 flex-1 min-w-0">
-                    <span class="text-[8px] font-bold truncate text-black">170Hz</span>
+                    <span class="text-[8px] font-bold truncate">170Hz</span>
                     <div class="h-28 flex items-center justify-center relative">
                         <input type="range" data-band="1" min="-12" max="12" step="1" value="0" orient="vertical"
                             class="slider-vertical eq-band-slider h-24 cursor-pointer">
                     </div>
-                    <span class="text-[8px] font-mono text-black band-val">0dB</span>
+                    <span class="text-[8px] font-mono band-val">0dB</span>
                 </div>
 
                 <!-- 310 Hz -->
                 <div class="flex flex-col items-center gap-1.5 flex-1 min-w-0">
-                    <span class="text-[8px] font-bold truncate text-black">310Hz</span>
+                    <span class="text-[8px] font-bold truncate">310Hz</span>
                     <div class="h-28 flex items-center justify-center relative">
                         <input type="range" data-band="2" min="-12" max="12" step="1" value="0" orient="vertical"
                             class="slider-vertical eq-band-slider h-24 cursor-pointer">
                     </div>
-                    <span class="text-[8px] font-mono text-black band-val">0dB</span>
+                    <span class="text-[8px] font-mono band-val">0dB</span>
                 </div>
 
                 <!-- 600 Hz -->
                 <div class="flex flex-col items-center gap-1.5 flex-1 min-w-0">
-                    <span class="text-[8px] font-bold truncate text-black">600Hz</span>
+                    <span class="text-[8px] font-bold truncate">600Hz</span>
                     <div class="h-28 flex items-center justify-center relative">
                         <input type="range" data-band="3" min="-12" max="12" step="1" value="0" orient="vertical"
                             class="slider-vertical eq-band-slider h-24 cursor-pointer">
                     </div>
-                    <span class="text-[8px] font-mono text-black band-val">0dB</span>
+                    <span class="text-[8px] font-mono band-val">0dB</span>
                 </div>
 
                 <!-- 1K Hz -->
                 <div class="flex flex-col items-center gap-1.5 flex-1 min-w-0">
-                    <span class="text-[8px] font-bold truncate text-black">1kHz</span>
+                    <span class="text-[8px] font-bold truncate">1kHz</span>
                     <div class="h-28 flex items-center justify-center relative">
                         <input type="range" data-band="4" min="-12" max="12" step="1" value="0" orient="vertical"
                             class="slider-vertical eq-band-slider h-24 cursor-pointer">
                     </div>
-                    <span class="text-[8px] font-mono text-black band-val">0dB</span>
+                    <span class="text-[8px] font-mono band-val">0dB</span>
                 </div>
 
                 <!-- 3K Hz -->
                 <div class="flex flex-col items-center gap-1.5 flex-1 min-w-0">
-                    <span class="text-[8px] font-bold truncate text-black">3kHz</span>
+                    <span class="text-[8px] font-bold truncate">3kHz</span>
                     <div class="h-28 flex items-center justify-center relative">
                         <input type="range" data-band="5" min="-12" max="12" step="1" value="0" orient="vertical"
                             class="slider-vertical eq-band-slider h-24 cursor-pointer">
                     </div>
-                    <span class="text-[8px] font-mono text-black band-val">0dB</span>
+                    <span class="text-[8px] font-mono band-val">0dB</span>
                 </div>
 
                 <!-- 6K Hz -->
                 <div class="flex flex-col items-center gap-1.5 flex-1 min-w-0">
-                    <span class="text-[8px] font-bold truncate text-black">6kHz</span>
+                    <span class="text-[8px] font-bold truncate">6kHz</span>
                     <div class="h-28 flex items-center justify-center relative">
                         <input type="range" data-band="6" min="-12" max="12" step="1" value="0" orient="vertical"
                             class="slider-vertical eq-band-slider h-24 cursor-pointer">
                     </div>
-                    <span class="text-[8px] font-mono text-black band-val">0dB</span>
+                    <span class="text-[8px] font-mono band-val">0dB</span>
                 </div>
 
                 <!-- 12K Hz -->
                 <div class="flex flex-col items-center gap-1.5 flex-1 min-w-0">
-                    <span class="text-[8px] font-bold truncate text-black">12kHz</span>
+                    <span class="text-[8px] font-bold truncate">12kHz</span>
                     <div class="h-28 flex items-center justify-center relative">
                         <input type="range" data-band="7" min="-12" max="12" step="1" value="0" orient="vertical"
                             class="slider-vertical eq-band-slider h-24 cursor-pointer">
                     </div>
-                    <span class="text-[8px] font-mono text-black band-val">0dB</span>
+                    <span class="text-[8px] font-mono band-val">0dB</span>
                 </div>
 
                 <!-- 14K Hz -->
                 <div class="flex flex-col items-center gap-1.5 flex-1 min-w-0">
-                    <span class="text-[8px] font-bold truncate text-black">14kHz</span>
+                    <span class="text-[8px] font-bold truncate">14kHz</span>
                     <div class="h-28 flex items-center justify-center relative">
                         <input type="range" data-band="8" min="-12" max="12" step="1" value="0" orient="vertical"
                             class="slider-vertical eq-band-slider h-24 cursor-pointer">
                     </div>
-                    <span class="text-[8px] font-mono text-black band-val">0dB</span>
+                    <span class="text-[8px] font-mono band-val">0dB</span>
                 </div>
 
                 <!-- 16K Hz -->
                 <div class="flex flex-col items-center gap-1.5 flex-1 min-w-0">
-                    <span class="text-[8px] font-bold truncate text-black">16kHz</span>
+                    <span class="text-[8px] font-bold truncate">16kHz</span>
                     <div class="h-28 flex items-center justify-center relative">
                         <input type="range" data-band="9" min="-12" max="12" step="1" value="0" orient="vertical"
                             class="slider-vertical eq-band-slider h-24 cursor-pointer">
                     </div>
-                    <span class="text-[8px] font-mono text-black band-val">0dB</span>
+                    <span class="text-[8px] font-mono band-val">0dB</span>
+                </div>
+            </div>
+
+            <!-- Procesador de Audio (Cassette Retro) -->
+            <div class="h-[1px] bg-gray-400 border-b border-white my-2"></div>
+            <div class="flex flex-col gap-2 p-2 bg-[var(--win-bg)] opacity-95 rounded border border-[var(--win-border-light)] select-none">
+                <span class="font-bold text-[9px] text-[var(--win-text)] tracking-wider">📼 PROCESADOR DE AUDIO (CASSETTE / RETRO)</span>
+                
+                <div class="grid grid-cols-2 gap-2 text-[9px] text-[var(--win-text)]">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="retro-switch-label text-[var(--win-text)]">
+                            <input type="checkbox" id="fx-cassette-enable" class="w-3.5 h-3.5 cursor-pointer">
+                            <span>EFECTO CASSETTE</span>
+                        </label>
+                        <div class="flex items-center gap-1 ml-5">
+                            <span class="text-[8px]">CALIDAD:</span>
+                            <select id="fx-cassette-quality" class="retro-select text-[8px] p-0.5 w-24">
+                                <option value="normal">Normal</option>
+                                <option value="worn">Gastada (Worn)</option>
+                                <option value="damaged">Dañada (Damaged)</option>
+                                <option value="vintage">Vintage</option>
+                                <option value="chewedUp">Cinta Masticada</option>
+                            </select>
+                        </div>
+                        <label class="retro-switch-label text-[var(--win-text)] ml-5">
+                            <input type="checkbox" id="fx-bolby-enable" class="w-3.5 h-3.5 cursor-pointer">
+                            <span>REDUCCIÓN BOLBY B</span>
+                        </label>
+                        <div class="flex items-center gap-1 ml-5">
+                            <span class="text-[8px]">TIPO CINTA:</span>
+                            <select id="fx-tape-type" class="retro-select text-[8px] p-0.5 w-24">
+                                <option value="normal">Normal</option>
+                                <option value="chrome">Cromo</option>
+                                <option value="metal">Metal</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col gap-1.5">
+                        <label class="retro-switch-label text-[var(--win-text)]">
+                            <input type="checkbox" id="fx-hyperbass-enable" class="w-3.5 h-3.5 cursor-pointer">
+                            <span>HYPER BASS BOOST (40Hz)</span>
+                        </label>
+                        <label class="retro-switch-label text-[var(--win-text)]">
+                            <input type="checkbox" id="fx-loudness-enable" class="w-3.5 h-3.5 cursor-pointer">
+                            <span>LOUDNESS (DYNAMICS)</span>
+                        </label>
+                        <label class="retro-switch-label text-[var(--win-text)]">
+                            <input type="checkbox" id="fx-surround-enable" class="w-3.5 h-3.5 cursor-pointer">
+                            <span>SURROUND 3D / WIDE</span>
+                        </label>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1475,8 +1613,8 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 this.btnRepeat = document.getElementById('btn-repeat');
                 this.bitrateDisplay = document.getElementById('bitrate-display');
 
-                // Volume slider
-                this.volumeSlider = document.getElementById('volume-slider');
+                // Volume knob
+                this.volumeKnob = document.getElementById('volume-knob');
 
                 // Canvas visualizer setup
                 this.canvas = document.getElementById('visualizer-canvas');
@@ -1522,7 +1660,12 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
             updateDisplay(track, isPlaying) {
                 this.display.innerText = `${track.artist} - ${track.title} *** `;
                 this.display.style.animationPlayState = isPlaying ? 'running' : 'paused';
-                this.status.innerText = isPlaying ? 'PLAYING...' : 'PAUSED';
+                this.status.innerText = isPlaying ? 'PLAYING' : 'PAUSED';
+                if (isPlaying) {
+                    this.status.classList.add('status-blink');
+                } else {
+                    this.status.classList.remove('status-blink');
+                }
                 this.btnPlay.innerHTML = isPlaying ? '&#10074;&#10074; PAUSE' : '&#9654; PLAY';
             }
 
@@ -1530,6 +1673,7 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 this.display.innerText = "-- READY --";
                 this.display.style.animationPlayState = 'paused';
                 this.status.innerText = "STOPPED";
+                this.status.classList.remove('status-blink');
                 this.btnPlay.innerHTML = '&#9654; PLAY';
                 this.progressBar.style.width = '0%';
                 if (this.progressHandle) {
@@ -1542,8 +1686,10 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
 
             updateBitrate(bitrate) {
                 if (this.bitrateDisplay) {
-                    const displayVal = bitrate ? `${bitrate}kbps` : '---kbps';
-                    this.bitrateDisplay.innerText = `BITRATE: ${displayVal}`;
+                    // Always 3 chars for the number so layout doesn't shift
+                    const nbsp = '\u00a0';
+                    const num = bitrate ? bitrate.toString().padStart(3, nbsp) : `${nbsp}${nbsp}-`;
+                    this.bitrateDisplay.innerText = `BITRATE:${nbsp}${num}kbps`;
                 }
             }
 
@@ -2073,6 +2219,42 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 this.sfx = new AudioFX();
                 this.bitrateCache = {};
 
+                // --- VINTAGE PROCESSOR STATE ---
+                this.fxSettings = {
+                    cassette: false,
+                    quality: 'normal',
+                    bolby: false,
+                    tapeType: 'normal',
+                    hyperbass: false,
+                    loudness: false,
+                    surround: false
+                };
+
+                this.cassettePresets = {
+                    normal: { wowAmount: 0.002, wowSpeed: 0.5, hiss: 0.0012, lowCut: 60, highCut: 12000, compRatio: 1.2 },
+                    worn: { wowAmount: 0.015, wowSpeed: 0.4, hiss: 0.006, lowCut: 80, highCut: 8000, compRatio: 2.0 },
+                    damaged: { wowAmount: 0.045, wowSpeed: 0.8, hiss: 0.015, lowCut: 120, highCut: 4000, compRatio: 3.5 },
+                    vintage: { wowAmount: 0.008, wowSpeed: 0.2, hiss: 0.005, lowCut: 90, highCut: 6000, compRatio: 1.5 },
+                    chewedUp: { wowAmount: 0.095, wowSpeed: 0.6, hiss: 0.022, lowCut: 150, highCut: 3000, compRatio: 4.0 }
+                };
+
+                // --- RADIO TUNER STATE ---
+                this.radioStations = [
+                    { name: "SomaFM - Groove Salad (Ambient)", url: "https://ice6.somafm.com/groovesalad-128-mp3" },
+                    { name: "SomaFM - Drone Zone (Minimal)", url: "https://ice6.somafm.com/dronezone-128-mp3" },
+                    { name: "SomaFM - Indie Pop Rocks!", url: "https://ice6.somafm.com/indiepop-128-mp3" },
+                    { name: "SomaFM - Underground 80s", url: "https://ice6.somafm.com/u80s-128-mp3" },
+                    { name: "SomaFM - Beat Blender (Mid-tempo)", url: "https://ice6.somafm.com/beatblender-128-mp3" },
+                    { name: "SomaFM - Fluid (Deep House)", url: "https://ice6.somafm.com/fluid-128-mp3" },
+                    { name: "SomaFM - Lush (Vocal Ambient)", url: "https://ice6.somafm.com/lush-128-mp3" },
+                    { name: "SomaFM - Boot Liquor (Americana)", url: "https://ice6.somafm.com/bootliquor-128-mp3" }
+                ];
+                this.currentStationIndex = 0;
+                this.isSeekingStation = false;
+                this.radioPlaying = false;
+                this.isRadioActive = false;
+                this.radioStationsLoaded = false;
+
                 // Load EQ values from localStorage
                 const savedEqOn = localStorage.getItem('jukebox-eq-on');
                 const savedPreamp = localStorage.getItem('jukebox-eq-preamp');
@@ -2116,6 +2298,7 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                     localStorage.setItem('jukebox-theme', e.target.value);
                     this.sfx.playBeep(900, 'square', 0.1);
                     this.view.drawVisualizer(this.model.isPlaying, this.analyser);
+                    this.drawVolumeKnob();
                 });
 
                 document.getElementById('font-selector').addEventListener('change', (e) => {
@@ -2249,6 +2432,9 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 // EQ 10 frequency bands sliders
                 document.querySelectorAll('.eq-band-slider').forEach(slider => {
                     slider.addEventListener('input', (e) => {
+                        // Skip when applyPreset is doing a programmatic dispatchEvent
+                        if (this._applyingPreset) return;
+
                         const bandIndex = parseInt(e.target.getAttribute('data-band'));
                         const val = parseInt(e.target.value);
                         this.eqValues.bands[bandIndex] = val;
@@ -2262,11 +2448,14 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                     });
                 });
 
-                this.view.volumeSlider.addEventListener('input', (e) => {
-                    const vol = parseInt(e.target.value);
-                    this.model.setVolume(vol);
-                    this.audio.volume = vol / 100;
-                });
+                // Initialize volume knob
+                this.initVolumeKnob();
+                this.initVolumeKnobLarge();
+                this.initVolumeControls();
+                
+                // Force initial canvas draw so they aren't blank
+                this.drawVolumeKnob();
+                this.view.drawVisualizer(false, null);
 
                 this.view.playlistContainer.addEventListener('click', (e) => {
                     const li = e.target.closest('li');
@@ -2274,6 +2463,63 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                         const index = parseInt(li.dataset.index);
                         this.handleTrackSelect(index);
                     }
+                });
+
+                // Tab buttons switching
+                document.getElementById('tab-playlist').addEventListener('click', () => {
+                    this.sfx.playBeep(650, 'triangle', 0.08);
+                    document.getElementById('playlist-queue-container').style.display = 'block';
+                    document.getElementById('radio-tuner-container').style.display = 'none';
+                    document.getElementById('tab-playlist').className = "pixel-btn px-1.5 py-0.5 text-[9px] font-bold text-black bg-[#C0C0C0] shadow-[inset_1px_1px_0px_#fff,inset_-1px_-1px_0px_#808080]";
+                    document.getElementById('tab-radio').className = "pixel-btn px-1.5 py-0.5 text-[9px] font-bold text-black bg-[#C0C0C0] shadow-[inset_-1px_-1px_0px_#fff,inset_1px_1px_0px_#808080]";
+                });
+                document.getElementById('tab-radio').addEventListener('click', () => {
+                    this.sfx.playBeep(750, 'square', 0.08);
+                    document.getElementById('playlist-queue-container').style.display = 'none';
+                    document.getElementById('radio-tuner-container').style.display = 'block';
+                    document.getElementById('tab-playlist').className = "pixel-btn px-1.5 py-0.5 text-[9px] font-bold text-black bg-[#C0C0C0] shadow-[inset_-1px_-1px_0px_#fff,inset_1px_1px_0px_#808080]";
+                    document.getElementById('tab-radio').className = "pixel-btn px-1.5 py-0.5 text-[9px] font-bold text-black bg-[#C0C0C0] shadow-[inset_1px_1px_0px_#fff,inset_-1px_-1px_0px_#808080]";
+                    this.initRadioStations();
+                });
+
+                // Radio tuner actions
+                document.getElementById('btn-radio-play').addEventListener('click', () => this.handleRadioPlayToggle());
+                document.getElementById('btn-radio-seek-prev').addEventListener('click', () => this.seekRadioStation(-1));
+                document.getElementById('btn-radio-seek-next').addEventListener('click', () => this.seekRadioStation(1));
+
+                // Vintage effects event listeners
+                document.getElementById('fx-cassette-enable').addEventListener('change', (e) => {
+                    this.sfx.playBeep(600, 'square', 0.05);
+                    this.fxSettings.cassette = e.target.checked;
+                    this.updateFXNodes();
+                });
+                document.getElementById('fx-cassette-quality').addEventListener('change', (e) => {
+                    this.fxSettings.quality = e.target.value;
+                    this.updateFXNodes();
+                });
+                document.getElementById('fx-bolby-enable').addEventListener('change', (e) => {
+                    this.sfx.playBeep(600, 'square', 0.05);
+                    this.fxSettings.bolby = e.target.checked;
+                    this.updateFXNodes();
+                });
+                document.getElementById('fx-tape-type').addEventListener('change', (e) => {
+                    this.fxSettings.tapeType = e.target.value;
+                    this.updateFXNodes();
+                });
+                document.getElementById('fx-hyperbass-enable').addEventListener('change', (e) => {
+                    this.sfx.playBeep(600, 'square', 0.05);
+                    this.fxSettings.hyperbass = e.target.checked;
+                    this.updateFXNodes();
+                });
+                document.getElementById('fx-loudness-enable').addEventListener('change', (e) => {
+                    this.sfx.playBeep(600, 'square', 0.05);
+                    this.fxSettings.loudness = e.target.checked;
+                    this.updateFXNodes();
+                });
+                document.getElementById('fx-surround-enable').addEventListener('change', (e) => {
+                    this.sfx.playBeep(600, 'square', 0.05);
+                    this.fxSettings.surround = e.target.checked;
+                    this.updateFXNodes();
                 });
 
                 // Dragging and timeline seeking logic
@@ -2494,7 +2740,7 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 await this.model.loadPlaylist();
                 this.view.renderPlaylist(this.model.playlist, this.model.currentIndex);
                 this.view.updateToggles(this.model.isShuffle, this.model.isRepeat);
-                this.view.volumeSlider.value = this.model.volume;
+                this.drawVolumeKnob();
                 this.audio.volume = this.model.volume / 100;
                 this.updateSupabaseUI();
             }
@@ -2638,16 +2884,128 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                         this.eqFilters.push(filter);
                     });
 
-                    lastNode.connect(this.analyser);
+                    // --- VINTAGE AUDIO PROCESSOR NODES ---
+                    this.loudnessNode = this.audioCtx.createGain();
+                    this.loudnessNode.gain.value = 1.0;
+                    lastNode.connect(this.loudnessNode);
+                    lastNode = this.loudnessNode;
+
+                    this.bassBoost = this.audioCtx.createBiquadFilter();
+                    this.bassBoost.type = 'lowshelf';
+                    this.bassBoost.frequency.value = 40;
+                    this.bassBoost.gain.value = 0;
+                    lastNode.connect(this.bassBoost);
+                    lastNode = this.bassBoost;
+
+                    this.cassetteFilterLow = this.audioCtx.createBiquadFilter();
+                    this.cassetteFilterLow.type = 'highpass';
+                    this.cassetteFilterLow.frequency.value = 20;
+                    this.cassetteFilterLow.Q.value = 0.7;
+                    lastNode.connect(this.cassetteFilterLow);
+                    lastNode = this.cassetteFilterLow;
+
+                    this.cassetteFilterHigh = this.audioCtx.createBiquadFilter();
+                    this.cassetteFilterHigh.type = 'lowpass';
+                    this.cassetteFilterHigh.frequency.value = 20000;
+                    this.cassetteFilterHigh.Q.value = 0.7;
+                    lastNode.connect(this.cassetteFilterHigh);
+                    lastNode = this.cassetteFilterHigh;
+
+                    this.cassetteCompressor = this.audioCtx.createDynamicsCompressor();
+                    this.cassetteCompressor.threshold.value = -12;
+                    this.cassetteCompressor.knee.value = 8;
+                    this.cassetteCompressor.ratio.value = 1;
+                    this.cassetteCompressor.attack.value = 0.003;
+                    this.cassetteCompressor.release.value = 0.25;
+                    lastNode.connect(this.cassetteCompressor);
+                    lastNode = this.cassetteCompressor;
+
+                    this.tapeBiasFilter = this.audioCtx.createBiquadFilter();
+                    this.tapeBiasFilter.type = 'highshelf';
+                    this.tapeBiasFilter.frequency.value = 10000;
+                    this.tapeBiasFilter.gain.value = 0;
+                    lastNode.connect(this.tapeBiasFilter);
+                    lastNode = this.tapeBiasFilter;
+
+                    this.bolbyBFilter = this.audioCtx.createBiquadFilter();
+                    this.bolbyBFilter.type = 'highshelf';
+                    this.bolbyBFilter.frequency.value = 5000;
+                    this.bolbyBFilter.gain.value = 0;
+                    lastNode.connect(this.bolbyBFilter);
+                    lastNode = this.bolbyBFilter;
+
+                    this.surroundInputGain = this.audioCtx.createGain();
+                    this.surroundInputGain.gain.value = 1.0;
+                    lastNode.connect(this.surroundInputGain);
+
+                    // Surround channels processing
+                    this.surroundSplitter = this.audioCtx.createChannelSplitter(2);
+                    this.surroundMerger = this.audioCtx.createChannelMerger(2);
+
+                    this.surroundDryL = this.audioCtx.createGain();
+                    this.surroundDryR = this.audioCtx.createGain();
+                    this.surroundDryL.gain.value = 1.0;
+                    this.surroundDryR.gain.value = 1.0;
+
+                    this.surroundDelayL = this.audioCtx.createDelay(0.05);
+                    this.surroundDelayR = this.audioCtx.createDelay(0.05);
+                    this.surroundDelayL.delayTime.value = 0.014;
+                    this.surroundDelayR.delayTime.value = 0.014;
+
+                    this.surroundInvL = this.audioCtx.createGain();
+                    this.surroundInvR = this.audioCtx.createGain();
+                    this.surroundInvL.gain.value = -0.9;
+                    this.surroundInvR.gain.value = -0.9;
+
+                    this.surroundOutputGain = this.audioCtx.createGain();
+                    this.surroundOutputGain.gain.value = 0.8;
+
+                    this.surroundSplitter.connect(this.surroundDryL, 0);
+                    this.surroundSplitter.connect(this.surroundDryR, 1);
+                    this.surroundDryL.connect(this.surroundMerger, 0, 0);
+                    this.surroundDryR.connect(this.surroundMerger, 0, 1);
+
+                    this.surroundSplitter.connect(this.surroundDelayL, 0);
+                    this.surroundSplitter.connect(this.surroundDelayR, 1);
+                    this.surroundDelayL.connect(this.surroundInvL);
+                    this.surroundDelayR.connect(this.surroundInvR);
+                    this.surroundInvL.connect(this.surroundMerger, 0, 1); // cross-feed
+                    this.surroundInvR.connect(this.surroundMerger, 0, 0);
+
+                    this.surroundMerger.connect(this.surroundOutputGain);
+
+                    this.stereoPanner = this.audioCtx.createStereoPanner();
+                    this.stereoPanner.pan.value = 0;
+
+                    this.surroundInputGain.connect(this.stereoPanner);
+                    
+                    this.stereoPanner.connect(this.analyser);
                     this.analyser.connect(this.audioCtx.destination);
 
+                    // Noise generator setup for tape hiss
+                    this.createHissNoiseSource();
+
+                    // Apply active FX settings values
+                    this.updateFXNodes();
                     this.syncEqualizerNodeValues();
+
+                    // Start Wow & Flutter animation loop
+                    this.updateWowFlutter();
+
                 } catch (e) {
                     console.warn("Web Audio API blocked or not supported on this origin.", e);
                 }
             }
 
             loadAndPlayTrack() {
+                if (this.isRadioActive) {
+                    this.isRadioActive = false;
+                    this.radioPlaying = false;
+                    const radioPlayBtn = document.getElementById('btn-radio-play');
+                    if (radioPlayBtn) radioPlayBtn.innerHTML = '▶ REPRODUCIR';
+                    this.updateTunerUI();
+                }
+
                 this.initAudioAnalyser();
                 if (this.audioCtx && this.audioCtx.state === 'suspended') {
                     this.audioCtx.resume();
@@ -2805,14 +3163,18 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
 
                 const gains = presets[presetName] || presets.flat;
                 this.eqValues.bands = [...gains];
+                this._applyingPreset = true;  // flag to prevent input handler overwriting values
                 localStorage.setItem('jukebox-eq-bands', JSON.stringify(this.eqValues.bands));
 
-                // Update UI sliders and text values
+                // Update UI sliders and text values, then force a repaint via dispatchEvent
                 const sliders = document.querySelectorAll('.eq-band-slider');
                 sliders.forEach(slider => {
                     const bandIndex = parseInt(slider.getAttribute('data-band'));
                     const val = gains[bandIndex];
                     slider.value = val;
+
+                    // Force browser to repaint the slider thumb position
+                    slider.dispatchEvent(new Event('input', { bubbles: false }));
 
                     const valSpan = slider.closest('.min-w-0').querySelector('.band-val');
                     if (valSpan) {
@@ -2820,6 +3182,7 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                     }
                 });
 
+                this._applyingPreset = false;
                 this.syncEqualizerNodeValues();
             }
 
@@ -2927,6 +3290,590 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 this.model.isRepeat = !this.model.isRepeat;
                 if (this.model.isRepeat) this.model.isShuffle = false;
                 this.view.updateToggles(this.model.isShuffle, this.model.isRepeat);
+            }
+
+            // --- VINTAGE AUDIO PROCESSOR SUPPORTING METHODS ---
+            createHissNoiseSource() {
+                if (!this.audioCtx) return;
+                try {
+                    const bufferSize = this.audioCtx.sampleRate * 2;
+                    const noiseBuffer = this.audioCtx.createBuffer(1, bufferSize, this.audioCtx.sampleRate);
+                    const output = noiseBuffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        output[i] = Math.random() * 2 - 1;
+                    }
+                    
+                    this.noiseSource = this.audioCtx.createBufferSource();
+                    this.noiseSource.buffer = noiseBuffer;
+                    this.noiseSource.loop = true;
+                    
+                    this.noiseGain = this.audioCtx.createGain();
+                    this.noiseGain.gain.value = 0;
+                    
+                    this.noiseSource.connect(this.noiseGain);
+                    this.noiseGain.connect(this.analyser);
+                    this.noiseSource.start();
+                } catch(e) {
+                    console.warn("Failed to create hiss noise source", e);
+                }
+            }
+
+            updateWowFlutter() {
+                if (!this.audioCtx) return;
+                
+                if (this.fxSettings.cassette && !this.audio.paused && (this.model.isPlaying || this.radioPlaying)) {
+                    const preset = this.cassettePresets[this.fxSettings.quality] || this.cassettePresets.normal;
+                    const time = this.audioCtx.currentTime;
+
+                    const mainWow = Math.sin(time * 2 * Math.PI * preset.wowSpeed) * preset.wowAmount;
+                    const flutter = Math.sin(time * 2 * Math.PI * (preset.wowSpeed * 4.5)) * (preset.wowAmount * 0.35);
+                    const randomFlutter = (Math.random() - 0.5) * preset.wowAmount * 0.15;
+                    const totalFlutter = mainWow + flutter + randomFlutter;
+
+                    this.audio.preservesPitch = false;
+                    let targetRate = 1.0;
+                    
+                    this.audio.playbackRate = Math.max(0.1, targetRate + totalFlutter);
+
+                    // Chewed tape dropout simulation
+                    if (this.fxSettings.quality === 'chewedUp') {
+                        if (!this.dropoutActive) {
+                            if (Math.random() < 0.003) {
+                                this.dropoutActive = true;
+                                this.audio.playbackRate = 0.5;
+                                if (this.cassetteFilterHigh) {
+                                    this.cassetteFilterHigh.frequency.setValueAtTime(300, this.audioCtx.currentTime);
+                                }
+                                this.preamp.gain.setValueAtTime(0.05, this.audioCtx.currentTime);
+                                
+                                setTimeout(() => {
+                                    this.dropoutActive = false;
+                                    if (this.audioCtx) {
+                                        if (this.cassetteFilterHigh) {
+                                            this.cassetteFilterHigh.frequency.cancelScheduledValues(this.audioCtx.currentTime);
+                                            this.cassetteFilterHigh.frequency.setValueAtTime(preset.highCut, this.audioCtx.currentTime);
+                                        }
+                                        this.preamp.gain.cancelScheduledValues(this.audioCtx.currentTime);
+                                        this.preamp.gain.setValueAtTime(Math.pow(10, this.eqValues.preamp / 20), this.audioCtx.currentTime);
+                                    }
+                                }, 400 + Math.random() * 400);
+                            }
+                        }
+                    }
+                } else {
+                    this.audio.playbackRate = 1.0;
+                }
+                
+                this.wowFlutterAnimationId = requestAnimationFrame(() => this.updateWowFlutter());
+            }
+
+            updateFXNodes() {
+                if (!this.audioCtx) return;
+
+                // 1. Hyper Bass Boost
+                if (this.bassBoost) {
+                    this.bassBoost.gain.setValueAtTime(this.fxSettings.hyperbass ? 8 : 0, this.audioCtx.currentTime);
+                }
+
+                // 2. Loudness
+                if (this.loudnessNode) {
+                    this.loudnessNode.gain.setValueAtTime(this.fxSettings.loudness ? 1.25 : 1.0, this.audioCtx.currentTime);
+                }
+
+                // 3. Stereo Wide
+                if (this.stereoPanner) {
+                    this.stereoPanner.pan.setValueAtTime(this.fxSettings.surround ? 0.35 : 0, this.audioCtx.currentTime);
+                }
+
+                // 4. Cassette parameters
+                const active = this.fxSettings.cassette;
+                const preset = this.cassettePresets[this.fxSettings.quality] || this.cassettePresets.normal;
+
+                if (this.cassetteFilterLow) {
+                    this.cassetteFilterLow.frequency.setValueAtTime(active ? preset.lowCut : 20, this.audioCtx.currentTime);
+                }
+                if (this.cassetteFilterHigh) {
+                    this.cassetteFilterHigh.frequency.setValueAtTime(active ? preset.highCut : 20000, this.audioCtx.currentTime);
+                }
+                if (this.cassetteCompressor) {
+                    this.cassetteCompressor.ratio.value = active ? preset.compRatio : 1.0;
+                }
+
+                // Noise Hiss
+                if (this.noiseGain) {
+                    this.noiseGain.gain.setValueAtTime(active ? preset.hiss : 0, this.audioCtx.currentTime);
+                }
+
+                // Tape Bias
+                let biasGain = 0;
+                if (active) {
+                    if (this.fxSettings.tapeType === 'chrome') biasGain = -3;
+                    else if (this.fxSettings.tapeType === 'metal') biasGain = -2;
+                }
+                if (this.tapeBiasFilter) {
+                    this.tapeBiasFilter.gain.setValueAtTime(biasGain, this.audioCtx.currentTime);
+                }
+
+                // Dolby Noise Reduction
+                if (this.bolbyBFilter) {
+                    this.bolbyBFilter.gain.setValueAtTime((active && this.fxSettings.bolby) ? -8 : 0, this.audioCtx.currentTime);
+                }
+
+                // Surround connections
+                if (this.surroundInputGain && this.surroundSplitter && this.stereoPanner) {
+                    this.surroundInputGain.disconnect();
+                    if (this.fxSettings.surround) {
+                        this.surroundInputGain.connect(this.surroundSplitter);
+                        this.surroundOutputGain.connect(this.stereoPanner);
+                    } else {
+                        this.surroundInputGain.connect(this.stereoPanner);
+                    }
+                }
+            }
+
+            // --- INTERACTIVE VOLUME SLIDER & LARGE KNOB ---
+            drawVolumeKnob() {
+                // Update the linear slider position to match current volume
+                const slider = document.getElementById('volume-knob');
+                if (slider) slider.value = this.model.volume;
+
+                // Draw the large knob panel and update its readout
+                this.drawVolumeKnobLarge();
+                const readout = document.getElementById('volume-readout-large');
+                if (readout) {
+                    readout.textContent = `${this.model.volume}%`;
+                }
+            }
+
+            drawVolumeKnobLarge() {
+                const canvas = document.getElementById('volume-knob-large');
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const radius = canvas.width / 2 - 18; // margin for ticks and numbers
+                
+                const startAngle = (Math.PI / 180) * -140;
+                const endAngle = (Math.PI / 180) * 130;
+                const totalAngle = endAngle - startAngle;
+                const angle = startAngle + (totalAngle * (this.model.volume / 100));
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Get neon color matching theme's screen color or default
+                let neonColor = '#49f6e2';
+                try {
+                    const computedStyle = getComputedStyle(document.documentElement);
+                    const crtText = computedStyle.getPropertyValue('--crt-text').trim();
+                    if (crtText) neonColor = crtText;
+                } catch(e) {}
+
+                // Get themed text color for ticks and numbers
+                let textColor = '#000000';
+                try {
+                    const computedStyle = getComputedStyle(document.documentElement);
+                    const winText = computedStyle.getPropertyValue('--win-text').trim();
+                    if (winText) textColor = winText;
+                } catch(e) {}
+
+                // Draw numbers 0 to 10 around the dial (matching retro-look angles)
+                ctx.fillStyle = textColor;
+                ctx.font = '8px monospace';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                const labelRadius = radius + 10;
+                for (let i = 0; i <= 10; i++) {
+                    const deg = -140 + i * 27;
+                    const rad = (Math.PI / 180) * deg;
+                    const labelX = centerX + labelRadius * Math.cos(rad);
+                    const labelY = centerY + labelRadius * Math.sin(rad);
+                    ctx.fillText(i.toString(), labelX, labelY);
+                }
+
+                // Draw dense tick marks around the knob (conic style, using textColor)
+                for (let a = -140; a <= 130; a += 4.5) {
+                    const rad = (Math.PI / 180) * a;
+                    const isMajor = Math.abs((a + 140) % 27) < 0.1 || Math.abs(a - 130) < 0.1;
+                    const tickLength = isMajor ? 5 : 2.5;
+                    const startR = radius + 1;
+                    const endR = radius + 1 + tickLength;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(centerX + startR * Math.cos(rad), centerY + startR * Math.sin(rad));
+                    ctx.lineTo(centerX + endR * Math.cos(rad), centerY + endR * Math.sin(rad));
+                    ctx.strokeStyle = textColor;
+                    ctx.globalAlpha = isMajor ? 0.7 : 0.4;
+                    ctx.lineWidth = isMajor ? 1.2 : 0.6;
+                    ctx.stroke();
+                }
+                ctx.globalAlpha = 1.0; // reset
+
+                // Outer ring gap (matching retro-look)
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                ctx.fillStyle = '#000000';
+                ctx.fill();
+
+                // Progress arc (teal neon glow matching retro-look)
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, startAngle, angle);
+                ctx.strokeStyle = neonColor;
+                ctx.lineWidth = 6;
+                ctx.shadowColor = neonColor;
+                ctx.shadowBlur = 6;
+                ctx.stroke();
+                ctx.shadowBlur = 0; // reset shadow
+
+                // Inner knob body (brushed aluminium disc matching retro-look)
+                const bodyGrad = ctx.createLinearGradient(centerX, centerY - radius, centerX, centerY + radius);
+                bodyGrad.addColorStop(0, '#5a5c62');
+                bodyGrad.addColorStop(0.5, '#2c2c2f');
+                bodyGrad.addColorStop(1, '#141416');
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius - 10, 0, 2 * Math.PI);
+                ctx.fillStyle = bodyGrad;
+                ctx.fill();
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                // Indicator line (bright red pointer matching retro-look)
+                const indicatorLength = radius - 10;
+                const indicatorX = centerX + indicatorLength * Math.cos(angle);
+                const indicatorY = centerY + indicatorLength * Math.sin(angle);
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(indicatorX, indicatorY);
+                ctx.strokeStyle = '#ff3320';
+                ctx.lineWidth = 3.5;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+                
+                // Centre pin
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 4, 0, 2 * Math.PI);
+                ctx.fillStyle = '#0a0a0a';
+                ctx.fill();
+            }
+
+            initVolumeKnob() {
+                const slider = document.getElementById('volume-knob');
+                if (!slider) return;
+
+                slider.addEventListener('input', (e) => {
+                    const newVol = parseInt(e.target.value);
+                    this.model.setVolume(newVol);
+                    this.audio.volume = newVol / 100;
+
+                    // Unmute button UI state if active
+                    const muteBtn = document.getElementById('btn-volume-mute');
+                    if (muteBtn && muteBtn.classList.contains('active-toggle')) {
+                        muteBtn.textContent = '🔊 MUTE: OFF';
+                        muteBtn.classList.remove('active-toggle');
+                    }
+
+                    this.drawVolumeKnob();
+                });
+            }
+
+            initVolumeKnobLarge() {
+                const canvas = document.getElementById('volume-knob-large');
+                if (!canvas) return;
+                
+                let isDragging = false;
+                const handleInteract = (e) => {
+                    const rect = canvas.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    const angle = Math.atan2(clientY - centerY, clientX - centerX);
+                    let volAngle = angle * (180 / Math.PI);
+                    const startLimit = -140;
+                    const endLimit = 130;
+
+                    // Normalize angle
+                    if (volAngle < startLimit) {
+                        volAngle = startLimit;
+                    } else if (volAngle > endLimit) {
+                        volAngle = endLimit;
+                    }
+                    
+                    const newVol = Math.round((volAngle - startLimit) * 100 / (endLimit - startLimit));
+                    this.model.setVolume(newVol);
+                    this.audio.volume = newVol / 100;
+                    
+                    // Unmute button UI state if active
+                    const muteBtn = document.getElementById('btn-volume-mute');
+                    if (muteBtn && muteBtn.classList.contains('active-toggle')) {
+                        muteBtn.textContent = '🔊 MUTE: OFF';
+                        muteBtn.classList.remove('active-toggle');
+                    }
+
+                    this.drawVolumeKnob();
+                };
+
+                canvas.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    handleInteract(e);
+                });
+                window.addEventListener('mousemove', (e) => {
+                    if (isDragging) handleInteract(e);
+                });
+                window.addEventListener('mouseup', () => {
+                    isDragging = false;
+                });
+
+                // Touch support
+                canvas.addEventListener('touchstart', (e) => {
+                    isDragging = true;
+                    handleInteract(e);
+                    e.preventDefault();
+                }, { passive: false });
+                window.addEventListener('touchmove', (e) => {
+                    if (isDragging) {
+                        handleInteract(e);
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+                window.addEventListener('touchend', () => {
+                    isDragging = false;
+                });
+            }
+
+            initVolumeControls() {
+                const volumePanel = document.getElementById('player-volume-panel');
+                const playerApp = document.getElementById('player-app');
+                const toggleBtn = document.getElementById('btn-toggle-volume');
+                const closeBtn = document.getElementById('btn-volume-close');
+                const muteBtn = document.getElementById('btn-volume-mute');
+
+                // Determine default visibility (opens by default)
+                const showPanelSaved = localStorage.getItem('show-volume-panel');
+                const showPanel = showPanelSaved === null ? true : (showPanelSaved === 'true');
+
+                if (volumePanel && playerApp && toggleBtn) {
+                    if (showPanel) {
+                        volumePanel.style.display = 'flex';
+                        toggleBtn.classList.add('active-toggle');
+                    } else {
+                        volumePanel.style.display = 'none';
+                        toggleBtn.classList.remove('active-toggle');
+                    }
+
+                    const togglePanel = () => {
+                        this.sfx.playBeep(600, 'triangle', 0.08);
+                        const isHidden = volumePanel.style.display === 'none';
+                        if (isHidden) {
+                            volumePanel.style.display = 'flex';
+                            toggleBtn.classList.add('active-toggle');
+                            localStorage.setItem('show-volume-panel', 'true');
+                            
+                            // Adjust playerApp width
+                            playerApp.style.width = '';
+                            setTimeout(() => {
+                                const newWidth = playerApp.getBoundingClientRect().width;
+                                playerApp.style.width = `${newWidth}px`;
+                            }, 50);
+                        } else {
+                            volumePanel.style.display = 'none';
+                            toggleBtn.classList.remove('active-toggle');
+                            localStorage.setItem('show-volume-panel', 'false');
+                            
+                            // Adjust playerApp width
+                            playerApp.style.width = '';
+                            setTimeout(() => {
+                                const newWidth = playerApp.getBoundingClientRect().width;
+                                playerApp.style.width = `${newWidth}px`;
+                            }, 50);
+                        }
+                    };
+
+                    toggleBtn.addEventListener('click', togglePanel);
+                    if (closeBtn) closeBtn.addEventListener('click', togglePanel);
+                }
+
+                // Mute button logic
+                if (muteBtn) {
+                    muteBtn.addEventListener('click', () => {
+                        this.sfx.playBeep(500, 'square', 0.1);
+                        if (this.model.volume > 0) {
+                            // Mute
+                            this.previousVolume = this.model.volume;
+                            this.model.setVolume(0);
+                            this.audio.volume = 0;
+                            muteBtn.textContent = '🔇 MUTE: ON';
+                            muteBtn.classList.add('active-toggle');
+                        } else {
+                            // Unmute
+                            const restoreVol = this.previousVolume || 80;
+                            this.model.setVolume(restoreVol);
+                            this.audio.volume = restoreVol / 100;
+                            muteBtn.textContent = '🔊 MUTE: OFF';
+                            muteBtn.classList.remove('active-toggle');
+                        }
+                        this.drawVolumeKnob();
+                    });
+                }
+            }
+
+            // --- AM/FM DIGITAL TUNER METHODS ---
+            initRadioStations() {
+                if (this.radioStationsLoaded) return;
+                this.radioStationsLoaded = true;
+                
+                const list = document.getElementById('radio-station-list');
+                if (!list) return;
+                list.innerHTML = '';
+
+                this.radioStations.forEach((station, index) => {
+                    const li = document.createElement('li');
+                    li.className = "py-1 px-2 border-b border-[#1a3c35] cursor-pointer hover:bg-[#12302a] transition-all";
+                    li.innerHTML = `<span class="opacity-50 inline-block w-8">FM-${index+1}</span> ${station.name}`;
+                    li.dataset.index = index;
+                    li.addEventListener('click', () => {
+                        this.currentStationIndex = index;
+                        this.playRadioStation();
+                    });
+                    list.appendChild(li);
+                });
+                
+                this.updateTunerUI();
+            }
+
+            updateTunerUI() {
+                const freqEl = document.getElementById('tuner-frequency-display');
+                const stationEl = document.getElementById('tuner-station-display');
+                const presetEl = document.getElementById('tuner-preset-display');
+                const stereoEl = document.getElementById('tuner-stereo-led');
+                
+                if (!freqEl) return;
+
+                const station = this.radioStations[this.currentStationIndex];
+                
+                // Compute static display frequency based on indexes
+                const steps = this.radioStations.length;
+                const freq = (87.5 + (this.currentStationIndex * (20.5 / steps))).toFixed(2);
+                
+                freqEl.innerText = freq;
+                stationEl.innerText = this.isSeekingStation ? "BUSCANDO..." : station.name;
+                presetEl.innerText = `P-${String(this.currentStationIndex + 1).padStart(2, '0')}`;
+                
+                if (stereoEl) {
+                    stereoEl.classList.toggle('active', this.radioPlaying && !this.isSeekingStation);
+                }
+
+                // Highlight in list
+                const list = document.getElementById('radio-station-list');
+                if (list) {
+                    const items = list.querySelectorAll('li');
+                    items.forEach((item, idx) => {
+                        item.classList.toggle('bg-[#12302a]', idx === this.currentStationIndex);
+                        item.classList.toggle('text-[#33ffcc]', idx === this.currentStationIndex);
+                    });
+                }
+            }
+
+            async seekRadioStation(direction) {
+                if (this.isSeekingStation) return;
+                this.sfx.playBeep(700, 'square', 0.05);
+
+                const wasPlaying = this.radioPlaying;
+                if (this.radioPlaying) {
+                    this.audio.pause();
+                    this.radioPlaying = false;
+                }
+
+                this.isSeekingStation = true;
+                this.updateTunerUI();
+
+                const signalEl = document.getElementById('tuner-signal');
+                let seekInterval = setInterval(() => {
+                    const tempFreq = (87.5 + Math.random() * 20.5).toFixed(2);
+                    document.getElementById('tuner-frequency-display').innerText = tempFreq;
+                    
+                    if (signalEl) {
+                        const bars = signalEl.querySelectorAll('.signal-bar-mini');
+                        bars.forEach(bar => {
+                            bar.classList.toggle('active', Math.random() > 0.5);
+                        });
+                    }
+                }, 80);
+
+                setTimeout(() => {
+                    clearInterval(seekInterval);
+                    this.isSeekingStation = false;
+                    
+                    this.currentStationIndex = (this.currentStationIndex + direction + this.radioStations.length) % this.radioStations.length;
+                    this.updateTunerUI();
+                    
+                    if (signalEl) {
+                        const bars = signalEl.querySelectorAll('.signal-bar-mini');
+                        bars.forEach((bar, idx) => {
+                            bar.classList.toggle('active', idx < 3);
+                        });
+                    }
+
+                    if (wasPlaying) {
+                        this.playRadioStation();
+                    }
+                }, 800);
+            }
+
+            playRadioStation() {
+                this.initAudioAnalyser();
+                if (this.audioCtx && this.audioCtx.state === 'suspended') {
+                    this.audioCtx.resume();
+                }
+
+                const station = this.radioStations[this.currentStationIndex];
+                if (!station) return;
+
+                this.model.isPlaying = false;
+                this.audio.pause();
+                
+                // Allow CORS audio stream
+                this.audio.crossOrigin = "anonymous";
+                this.audio.src = station.url;
+                this.audio.load();
+
+                const playBtn = document.getElementById('btn-radio-play');
+
+                this.isRadioActive = true;
+                this.radioPlaying = true;
+                this.updateTunerUI();
+
+                this.audio.play().then(() => {
+                    if (playBtn) playBtn.innerHTML = '⏸ PAUSA';
+                    this.view.display.innerText = `[FM RADIO] Sintonizando: ${station.name} *** `;
+                    this.view.display.style.animationPlayState = 'running';
+                    this.view.status.innerText = 'TUNED';
+                    this.view.drawVisualizer(true, this.analyser);
+                    this.view.drawAvs(true, this.analyser);
+                    this.updateTunerUI();
+                }).catch(err => {
+                    console.error("Radio streaming failed:", err);
+                    this.radioPlaying = false;
+                    this.updateTunerUI();
+                    if (playBtn) playBtn.innerHTML = '▶ REPRODUCIR';
+                    this.view.status.innerText = 'NO SIGNAL';
+                    alert("Error al conectar con la emisora. La transmisión no soporta reproducción externa CORS o no está en línea.");
+                });
+            }
+
+            handleRadioPlayToggle() {
+                this.sfx.playBeep(600, 'square', 0.1);
+                if (this.radioPlaying) {
+                    this.audio.pause();
+                    this.radioPlaying = false;
+                    const playBtn = document.getElementById('btn-radio-play');
+                    if (playBtn) playBtn.innerHTML = '▶ REPRODUCIR';
+                    this.view.display.style.animationPlayState = 'paused';
+                    this.view.status.innerText = 'MUTED';
+                    this.updateTunerUI();
+                } else {
+                    this.playRadioStation();
+                }
             }
         }
 
