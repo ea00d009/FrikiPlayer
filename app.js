@@ -690,6 +690,57 @@ class PlayerController {
         synth.playError();
       }
     }));
+
+    // Global Keyboard Shortcuts (Winamp style)
+    document.addEventListener("keydown", (e) => {
+      // Ignore if user is typing in an input field
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+
+      switch(e.key.toLowerCase()) {
+        case 'z':
+          synth.playClick();
+          this.prevTrack();
+          break;
+        case 'x':
+          synth.playClick();
+          this.play();
+          break;
+        case 'c':
+          synth.playClick();
+          this.pause();
+          break;
+        case 'v':
+          synth.playClick();
+          this.stop();
+          break;
+        case 'b':
+          synth.playClick();
+          this.nextTrack();
+          break;
+        case 'arrowup':
+          e.preventDefault();
+          this.model.setVolume(this.model.volume + 5);
+          this.syncVolume();
+          break;
+        case 'arrowdown':
+          e.preventDefault();
+          this.model.setVolume(this.model.volume - 5);
+          this.syncVolume();
+          break;
+        case 'arrowright':
+          e.preventDefault();
+          if (this.model.duration > 0) {
+            this.audio.currentTime = Math.min(this.model.duration, this.audio.currentTime + 5);
+          }
+          break;
+        case 'arrowleft':
+          e.preventDefault();
+          if (this.model.duration > 0) {
+            this.audio.currentTime = Math.max(0, this.audio.currentTime - 5);
+          }
+          break;
+      }
+    });
   }
 
   // Load the track URL into the Audio context
