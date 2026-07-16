@@ -562,3 +562,5 @@ input[type="range"].slider-vertical::-moz-range-thumb {
 input[type="checkbox"] {
   accent-color: var(--accent, #33ffcc);
 }
+
+
