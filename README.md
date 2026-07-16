@@ -12,8 +12,8 @@ El proyecto está diseñado bajo una arquitectura de cliente ligero, buscando el
    * **HTML5**: Estructura semántica para soportar las múltiples ventanas modales y el canvas gráfico.
    * **JavaScript Vanilla (ES6+)**: Lógica estructurada orientada a objetos (patrón MVC simplificado). Controla la manipulación del DOM, los flujos asíncronos y los ciclos de renderizado.
 2. **Estilos y Maquetación**:
-   * **TailwindCSS**: Utilizado para la distribución rápida de layouts flexbox/grid, espaciados y clases de posicionamiento.
-   * **Vanilla CSS (Custom Styles)**: Hoja de estilos con variables de color CSS (`:root` y `[data-theme]`) de alta especificidad para lograr la adaptabilidad cromática inmediata en todas las ventanas flotantes, además de estilos para botones biselados retro en 3D, controles deslizantes personalizados y el efecto de monitor CRT.
+   * **TailwindCSS**: Utilizado para la distribución rápida de layouts, espaciados y posicionamiento.
+   * **CSS Personalizado**: Hoja de estilos para lograr la adaptabilidad cromática de los temas en las ventanas, botones retro con bisel 3D, controles deslizantes a medida y el efecto de monitor CRT.
 3. **Procesamiento de Audio (Web Audio API)**:
    * Cadena de audio física: `HTML5 AudioElement` -> `Preamp (GainNode)` -> `10 peaking BiquadFilterNodes` (Ecualizador) -> `AnalyserNode` (Visualizaciones) -> `AudioContext.destination`.
 4. **Motor de Renderizado Gráfico (Canvas 2D)**:
@@ -70,7 +70,7 @@ Ventana flotante de renderizado vectorial dedicada a generar animaciones complej
 * Control de volumen **PREAMP** general.
 * Switch de bypass para activar o desactivar la ecualización en tiempo real.
 * Selección rápida de presets preconfigurados (*Flat*, *Rock*, *Pop*, *Dance*, *Clásico*, *Full Bass*, *Full Treble* y *Soft*).
-* **Sliders verticales funcionales en todos los navegadores**: Los sliders responden correctamente al cambiar de preset gracias a `writing-mode: vertical-lr`, solucionando la limitación del atributo `orient="vertical"` que sólo funciona en Firefox.
+* **Sliders verticales funcionales en todos los navegadores**: Los sliders responden correctamente al cambiar de preset en todos los navegadores, solucionando problemas de compatibilidad visual.
 
 ### 4. Notepad de Letras Sincronizadas
 * Ventana que emula a Notepad.exe encargada de mostrar y auto-desplazar las letras de las canciones en tiempo real.
@@ -82,29 +82,25 @@ Ventana flotante de renderizado vectorial dedicada a generar animaciones complej
 * **Modo Nube**: Si se ingresan las credenciales de Supabase (URL y Anon Key), el reproductor se conecta a una tabla de base de datos remota sincronizando las canciones en tiempo real con otros usuarios.
 * Formulario para añadir nuevas canciones especificando título, artista y ruta/URL del archivo MP3.
 
-
-
 ## ✨ Mejoras recientes de UI/UX
 
 ### Botonera de control estabilizada
-* Los 6 botones de control (`SHUFFLE`, `<<`, `PLAY/PAUSE`, `STOP`, `>>`, `REPEAT`) ahora mantienen **altura uniforme** mediante `items-stretch` en el flex container, independientemente del tamaño del emoji o texto de cada botón.
-* El botón `PLAY/PAUSE` tiene **ancho fijo** (`w-[105px]`) para que el texto "▶ PLAY" y "⏸ PAUSE" nunca provoquen un desplazamiento lateral al hacer clic.
-* Los iconos emoji de SHUFFLE y REPEAT se mantienen siempre a la **izquierda del texto** gracias a `whitespace-nowrap` en cada botón.
-* Se eliminó `flex-wrap` del contenedor para garantizar que todos los botones permanezcan en una **única fila**, evitando que el botón REPEAT "salte" a una segunda línea cuando el panel de volumen lateral está abierto.
+* Los 6 botones de control mantienen una **altura uniforme**, independientemente de los emojis o texto de cada botón.
+* El botón `PLAY/PAUSE` tiene un **ancho fijo** para evitar desplazamientos laterales molestos en la interfaz al cambiar de estado.
+* Los iconos de SHUFFLE y REPEAT se mantienen siempre alineados con el texto.
+* Se evita que los botones salten de línea cuando el panel de volumen lateral está abierto.
 
 ### Control de volumen lineal en pantalla CRT
-* El **mini knob circular** de arrastre dentro de la pantalla CRT fue reemplazado por un **slider lineal horizontal** más intuitivo y estándar.
-* El **knob grande** del panel lateral `VOLUMEN` sigue funcionando y sincroniza su posición con el slider lineal en tiempo real.
-* El slider usa la clase `crt-slider` existente, respetando el esquema de colores de cada tema visual.
+* El mini control de volumen fue reemplazado por un **control deslizante lineal horizontal** más cómodo e intuitivo.
+* El control de volumen del panel y la pantalla digital se sincronizan en tiempo real respetando los colores del tema activo.
 
-### Indicadores de estado sin saltos de layout
-* El indicador de estado (`STOPPED` / `PAUSED` / `PLAYING`) usa `shrink-0 whitespace-nowrap` para nunca provocar reflow en la interfaz.
-* Cuando el reproductor está en modo `PLAYING`, el texto **parpadea** mediante una animación CSS (`@keyframes blink-status`) para simular el clásico LED de actividad retro; se detiene automáticamente al pausar o detener.
-* El campo de **BITRATE** formatea el número con exactamente 3 dígitos usando `String.padStart` con espacios no rompibles (`\u00a0`), evitando que el layout se desplace al cambiar entre `64kbps`, `128kbps` o `320kbps`.
+### Indicadores de estado estables
+* El indicador de estado evita saltos o desajustes visuales en la interfaz.
+* Cuando está reproduciendo, el texto **parpadea** simulando un LED de actividad retro.
+* El campo de **bitrate** tiene un formato de ancho constante para evitar desalineaciones al cambiar su valor.
 
 ### Carga inmediata de gráficos
-* El **knob de volumen grande** y la **cuadrícula verde del visualizador** se dibujan en el canvas inmediatamente al cargar la página, sin necesidad de hacer clic o interactuar primero.
+* El volumen y la cuadrícula del visualizador se dibujan inmediatamente al cargar la página sin requerir interacción previa.
 
-### Ecualizador: presets visuales corregidos
-* Al seleccionar un preset en el EQ, los sliders verticales ahora se **mueven visualmente** a la posición correcta en todos los navegadores.
-* El problema raíz era que Chrome no interpreta `orient="vertical"` como atributo HTML; la solución fue usar `writing-mode: vertical-lr; direction: rtl;` en el CSS del slider, convirtiéndolo en genuinamente vertical para el motor de layout del navegador.
+### Ecualizador: presets corregidos
+* Al seleccionar un preajuste en el ecualizador, los controles verticales se mueven de manera correcta en todos los navegadores, solucionando problemas de compatibilidad visual.
