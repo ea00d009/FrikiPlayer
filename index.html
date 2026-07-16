@@ -660,6 +660,8 @@
                             title="Equalizador Grafico">🎛️ EQ</button>
                         <button id="btn-open-avs" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold"
                             title="Visualizador AVS">✨ AVS</button>
+                        <button id="btn-open-art" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold"
+                            title="Carátula (Cover Art)">🖼️ ART</button>
                         <button id="btn-open-config" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold"
                             title="Configuración">⚙️ CFG</button>
                         <button id="btn-minimize" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold">_</button>
@@ -961,6 +963,23 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
         </div>
     </div>
 
+    <!-- Cover Art Window -->
+    <div id="cover-art-app" class="pixel-window flex flex-col shadow-2xl z-30" style="display: none; width: 220px; height: 260px; min-width: 150px; min-height: 180px; resize: both; overflow: hidden;">
+        <!-- Title Bar -->
+        <div class="window-header px-3 py-2 flex justify-between items-center cursor-move">
+            <div class="flex items-center gap-2 min-w-0 flex-1 pointer-events-none">
+                <span class="text-[length:var(--fz-tiny)] truncate">🖼️ Cover Art</span>
+            </div>
+            <div class="flex gap-1 items-center shrink-0">
+                <button id="btn-art-close" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold">X</button>
+            </div>
+        </div>
+        <!-- Body -->
+        <div class="p-1 flex flex-1 bg-[var(--list-bg)] border-b-2 border-r-2 border-[var(--win-border-light)] border-t-2 border-l-2 border-[var(--win-border-dark)] overflow-hidden">
+            <img id="cover-art-img" src="https://picsum.photos/seed/42/200/200" alt="Cover Art" class="w-full h-full object-cover border border-black shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]">
+        </div>
+    </div>
+
     <!-- Configuration Window -->
     <div id="config-app" class="pixel-window w-full max-w-xs flex flex-col shadow-2xl z-30" style="display: none;">
         <!-- Title Bar -->
@@ -1207,8 +1226,8 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
         </div>
     </div>
 
-    <!-- AVS Visualizer Window -->
-    <div id="avs-app" class="pixel-window w-full max-w-xl flex flex-col shadow-2xl z-30" style="display: none;">
+    <!-- Winamp AVS Window -->
+    <div id="avs-app" class="pixel-window flex flex-col shadow-2xl z-30" style="display: none; width: 576px; height: 430px; min-width: 320px; min-height: 250px; resize: both; overflow: hidden;">
         <!-- Title Bar -->
         <div class="window-header px-3 py-2 flex justify-between items-center cursor-move">
             <div class="flex items-center gap-2 min-w-0 flex-1 pointer-events-none">
@@ -1220,7 +1239,7 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
             </div>
         </div>
         <!-- Body -->
-        <div class="p-4 flex flex-col gap-3 select-none">
+        <div class="p-4 flex flex-col flex-1 gap-3 select-none overflow-hidden">
             <!-- Controls: Selector del Modo AVS -->
             <div class="flex justify-between items-center gap-4 border-b border-gray-400 pb-2">
                 <div class="flex items-center gap-2">
@@ -1237,7 +1256,7 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 </div>
             </div>
             <!-- Canvas -->
-            <canvas id="avs-canvas" class="w-full bg-black border border-gray-500 cursor-pointer h-72"></canvas>
+            <canvas id="avs-canvas" class="w-full flex-1 bg-black border border-gray-500 cursor-pointer"></canvas>
         </div>
     </div>
 
@@ -2429,6 +2448,27 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 }
 
                 const eqApp = document.getElementById('equalizer-app');
+                
+                const artApp = document.getElementById('cover-art-app');
+                
+                // Toggle Art
+                document.getElementById('btn-open-art').addEventListener('click', () => {
+                    const isVisible = artApp.style.display === 'flex';
+                    if (isVisible) {
+                        this.sfx.playBeep(300, 'sawtooth', 0.15);
+                        artApp.style.display = 'none';
+                    } else {
+                        this.sfx.playBeep(700, 'square', 0.1);
+                        artApp.style.display = 'flex';
+                        this.centerWindow(artApp);
+                    }
+                });
+                
+                // Cerrar Art
+                document.getElementById('btn-art-close').addEventListener('click', () => {
+                    this.sfx.playBeep(300, 'sawtooth', 0.15);
+                    artApp.style.display = 'none';
+                });
 
                 const configApp = document.getElementById('config-app');
                 
@@ -2811,14 +2851,40 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
             }
 
             centerWindow(el) {
-                const rect = el.getBoundingClientRect();
-                const elWidth = rect.width || parseInt(getComputedStyle(el).width) || 380;
-                const elHeight = rect.height || parseInt(getComputedStyle(el).height) || 300;
-                el.style.width = `${elWidth}px`;
+                // Siempre debe ser absoluto para poder moverse libremente
                 el.style.position = 'absolute';
                 el.style.margin = '0';
-                el.style.left = `${Math.max(10, (window.innerWidth - elWidth) / 2)}px`;
-                el.style.top = `${Math.max(10, (window.innerHeight - elHeight) / 2 - 20)}px`;
+
+                // Intentar restaurar posición si ya existe
+                const winMgr = WindowManager.instances.find(w => w.player === el);
+                if (winMgr && winMgr.restorePosition()) {
+                    return;
+                }
+
+                // Si no hay posición guardada, crear cascada inteligente
+                const rect = el.getBoundingClientRect();
+                const elWidth = rect.width || parseInt(getComputedStyle(el).width) || 380;
+                
+                const mainPlayer = document.getElementById('player-app');
+                const mainRect = mainPlayer.getBoundingClientRect();
+                
+                el.style.width = `${elWidth}px`;
+                
+                // Cascada: Colocar exactamente a 8px (el GAP magnético) para que nazcan unidas
+                let newLeft = mainRect.right + 8;
+                let newTop = mainRect.top;
+                
+                // Si se sale de la pantalla por la derecha, intentar colocarlo debajo (unidas)
+                if (newLeft + elWidth > window.innerWidth) {
+                    newLeft = mainRect.left;
+                    newTop = mainRect.bottom + 8;
+                }
+                
+                el.style.left = `${newLeft}px`;
+                el.style.top = `${newTop}px`;
+                
+                // Guardar la posición inicial auto-calculada
+                if (winMgr) winMgr.savePosition();
             }
 
             updateSupabaseUI() {
@@ -3098,6 +3164,10 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
 
                 this.view.renderPlaylist(this.model.playlist, this.model.currentIndex);
                 this.view.updateDisplay(currentTrack, this.model.isPlaying);
+
+                // Update Cover Art
+                this.updateCoverArt(currentTrack);
+
                 this.view.drawVisualizer(this.model.isPlaying, this.analyser);
                 this.view.drawAvs(this.model.isPlaying, this.analyser);
 
@@ -3193,6 +3263,40 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                     this.initTrackLyrics(currentTrack);
                     this.syncLyrics(this.audio.currentTime);
                 }
+            }
+
+            async updateCoverArt(track) {
+                const coverImg = document.getElementById('cover-art-img');
+                if (!coverImg) return;
+
+                if (track.cover && !track.cover.includes('picsum.photos')) {
+                    coverImg.src = track.cover;
+                    return;
+                }
+
+                // Imagen por defecto de carga temporal
+                coverImg.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="%231a0033"/><text x="50%" y="50%" fill="%2305ffa1" font-size="12" font-family="monospace" text-anchor="middle" dominant-baseline="middle">Buscando...</text></svg>';
+
+                try {
+                    const query = encodeURIComponent(`${track.artist} ${track.title}`);
+                    const response = await fetch(`https://itunes.apple.com/search?term=${query}&media=music&limit=1`);
+                    const data = await response.json();
+
+                    if (data.results && data.results.length > 0) {
+                        const artworkUrl = data.results[0].artworkUrl100.replace('100x100bb', '300x300bb');
+                        coverImg.src = artworkUrl;
+                        track.cover = artworkUrl; // Cache it
+                    } else {
+                        this.setFallbackCover(coverImg, track.id);
+                    }
+                } catch (error) {
+                    console.error("Error buscando Cover Art:", error);
+                    this.setFallbackCover(coverImg, track.id);
+                }
+            }
+
+            setFallbackCover(imgElement, seed) {
+                imgElement.src = `https://picsum.photos/seed/${seed * 42}/200/200`;
             }
 
             syncEqualizerNodeValues() {
@@ -3977,15 +4081,25 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
             }
 
             init() {
-                // Initialize position to absolute and center it
+                // Initialize position to absolute
                 setTimeout(() => {
+                    // 1. Restaurar posición y estado de visibilidad PRIMERO
+                    const restored = this.restorePosition();
+                    
+                    // 2. Ahora que ya tiene su estado visible (si correspondía), calcular dimensiones
                     const rect = this.player.getBoundingClientRect();
                     if (rect.width > 0) {
                         this.player.style.width = `${rect.width}px`;
                         this.player.style.position = 'absolute';
                         this.player.style.margin = '0';
-                        this.player.style.left = `${Math.max(10, (window.innerWidth - rect.width) / 2)}px`;
-                        this.player.style.top = `${Math.max(10, (window.innerHeight - rect.height) / 2 - 20)}px`;
+                        
+                        // Si no hay posición guardada, centrar SOLO el reproductor principal
+                        if (!restored) {
+                            if (this.player.id === 'player-app') {
+                                this.player.style.left = `${Math.max(10, (window.innerWidth - rect.width) / 2)}px`;
+                                this.player.style.top = `${Math.max(10, (window.innerHeight - rect.height) / 2 - 20)}px`;
+                            }
+                        }
                     }
                 }, 100);
 
@@ -4002,6 +4116,14 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
 
                 window.addEventListener('mouseup', () => this.dragEnd());
                 window.addEventListener('touchend', () => this.dragEnd());
+
+                // Guardado maestro: Al presionar F5 o cerrar pestaña, guardar el estado completo
+                if (!WindowManager.unloadListenerAttached) {
+                    window.addEventListener('beforeunload', () => {
+                        WindowManager.instances.forEach(win => win.savePosition());
+                    });
+                    WindowManager.unloadListenerAttached = true;
+                }
             }
 
             focus() {
@@ -4067,7 +4189,14 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 this.startLeft = parseInt(this.player.style.left) || 0;
                 this.startTop = parseInt(this.player.style.top) || 0;
 
-                this.attachedWindows = this.getAttachedWindows();
+                // Jerarquía de Winamp: Solo el reproductor principal arrastra a las ventanas unidas.
+                // Si arrastras cualquier otra ventana, se mueve sola y se despega.
+                if (this.player.id === 'player-app') {
+                    this.attachedWindows = this.getAttachedWindows();
+                } else {
+                    this.attachedWindows = [];
+                }
+                
                 this.attachedWindows.forEach(win => {
                     win.startLeft = parseInt(win.player.style.left) || 0;
                     win.startTop = parseInt(win.player.style.top) || 0;
@@ -4155,6 +4284,46 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
 
             dragEnd() {
                 this.isDragging = false;
+                this.savePosition();
+                if (this.attachedWindows) {
+                    this.attachedWindows.forEach(win => win.savePosition());
+                }
+            }
+
+            savePosition() {
+                if (this.player.id && this.player.style.left && this.player.style.top) {
+                    const isVisible = getComputedStyle(this.player).display !== 'none';
+                    const pos = { 
+                        left: this.player.style.left, 
+                        top: this.player.style.top, 
+                        width: this.player.style.width, 
+                        height: this.player.style.height,
+                        visible: isVisible
+                    };
+                    localStorage.setItem(`winpos_${this.player.id}`, JSON.stringify(pos));
+                }
+            }
+
+            restorePosition() {
+                if (this.player.id) {
+                    const saved = localStorage.getItem(`winpos_${this.player.id}`);
+                    if (saved) {
+                        try {
+                            const pos = JSON.parse(saved);
+                            if (pos.left && pos.top) {
+                                this.player.style.position = 'absolute';
+                                this.player.style.margin = '0';
+                                this.player.style.left = pos.left;
+                                this.player.style.top = pos.top;
+                                if (pos.width) this.player.style.width = pos.width;
+                                if (pos.height && this.player.style.resize === 'both') this.player.style.height = pos.height;
+                                if (pos.visible) this.player.style.display = 'flex';
+                                return true;
+                            }
+                        } catch(e) {}
+                    }
+                }
+                return false;
             }
         }
 
@@ -4198,6 +4367,69 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
             }
         }
 
+        class RetroTooltipManager {
+            constructor() {
+                this.tooltip = document.createElement('div');
+                this.tooltip.id = 'retro-tooltip';
+                this.tooltip.style.cssText = 'position: fixed; z-index: 9999; pointer-events: none; display: none; background-color: #ffffe1; color: black; border: 1px solid black; padding: 2px 4px; font-family: monospace; font-size: 11px; box-shadow: 2px 2px 0px rgba(0,0,0,0.2); white-space: nowrap;';
+                document.body.appendChild(this.tooltip);
+
+                this.target = null;
+                this.timeout = null;
+
+                document.addEventListener('mouseover', this.onMouseOver.bind(this));
+                document.addEventListener('mouseout', this.onMouseOut.bind(this));
+                document.addEventListener('mousemove', this.onMouseMove.bind(this));
+            }
+
+            onMouseOver(e) {
+                let el = e.target.closest('[title], [data-tooltip]');
+                if (el) {
+                    // Convertir títulos nativos a data-tooltip
+                    if (el.hasAttribute('title')) {
+                        el.setAttribute('data-tooltip', el.getAttribute('title'));
+                        el.removeAttribute('title');
+                    }
+                    const text = el.getAttribute('data-tooltip');
+                    if (text) {
+                        this.target = el;
+                        clearTimeout(this.timeout);
+                        this.timeout = setTimeout(() => {
+                            if (this.target === el) {
+                                this.tooltip.textContent = text;
+                                this.tooltip.style.display = 'block';
+                            }
+                        }, 400); // Retardo idéntico al de Win95
+                    }
+                }
+            }
+
+            onMouseOut(e) {
+                if (this.target && (e.target === this.target || this.target.contains(e.target))) {
+                    clearTimeout(this.timeout);
+                    this.tooltip.style.display = 'none';
+                    this.target = null;
+                }
+            }
+
+            onMouseMove(e) {
+                if (this.target) {
+                    // Mantener la posición congelada una vez que el tooltip aparece
+                    if (this.tooltip.style.display !== 'block') {
+                        let x = e.clientX + 10;
+                        let y = e.clientY + 20;
+                        
+                        // Evitar que se salga de la pantalla
+                        if (x + 100 > window.innerWidth) x = e.clientX - 100;
+                        if (y + 20 > window.innerHeight) y = e.clientY - 25;
+
+                        this.tooltip.style.left = x + 'px';
+                        this.tooltip.style.top = y + 'px';
+                    }
+                }
+            }
+        }
+
         // Ejecución directa sin esperar DOMContentLoaded, ya que en los iframes 
         // de vista previa a veces el evento se dispara antes de tiempo o se bloquea.
         try {
@@ -4213,6 +4445,7 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
 
             new WindowManager(playerEl, headerEl);
             new DesktopManager(playerEl, minimizedEl, minimizeBtn);
+            new RetroTooltipManager();
 
             // Iniciar WindowManager para las nuevas ventanas flotantes retro
             const supabaseConfigEl = document.getElementById('supabase-config-app');
@@ -4230,6 +4463,10 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
             const configAppEl = document.getElementById('config-app');
             const configHeaderEl = configAppEl.querySelector('.window-header');
             new WindowManager(configAppEl, configHeaderEl);
+
+            const artAppEl = document.getElementById('cover-art-app');
+            const artHeaderEl = artAppEl.querySelector('.window-header');
+            new WindowManager(artAppEl, artHeaderEl);
 
             const eqAppEl = document.getElementById('equalizer-app');
             const eqHeaderEl = eqAppEl.querySelector('.window-header');

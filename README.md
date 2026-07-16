@@ -116,3 +116,5 @@ Ventana flotante de renderizado vectorial dedicada a generar animaciones complej
 
 ### Ecualizador: presets corregidos
 * Al seleccionar un preajuste en el ecualizador, los controles verticales se mueven de manera correcta en todos los navegadores, solucionando problemas de compatibilidad visual.
+
+ 
