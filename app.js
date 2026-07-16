@@ -607,6 +607,15 @@ class PlayerController {
       btn.classList.toggle("active", this.model.isLooping);
     }));
 
+    // Winshade toggle
+    const btnWinshade = document.getElementById("btn-winshade");
+    if (btnWinshade) {
+      btnWinshade.addEventListener("click", clickSynth(() => {
+        const appContainer = document.getElementById("player-app");
+        appContainer.classList.toggle("winshade-mode");
+      }));
+    }
+
     // Volume Slider binding
     const volSlider = document.getElementById("volume-slider");
     if (volSlider) {

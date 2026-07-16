@@ -621,6 +621,13 @@
         input[type="checkbox"] {
             accent-color: var(--header-bg, #000080);
         }
+        
+        /* Winshade Mode */
+        #player-app.winshade-mode .player-body,
+        #player-app.winshade-mode #player-volume-panel,
+        #player-app.winshade-mode .bottom-row-panels {
+            display: none !important;
+        }
     </style>
 </head>
 
@@ -664,12 +671,13 @@
                             title="Carátula (Cover Art)">🖼️ ART</button>
                         <button id="btn-open-config" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold"
                             title="Configuración">⚙️ CFG</button>
+                        <button id="btn-winshade" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold" title="Mini-modo Winshade">^</button>
                         <button id="btn-minimize" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold">_</button>
                     </div>
                 </div>
 
                 <!-- Cuerpo del reproductor: CRT y Mandos -->
-                <div class="p-4 sm:p-5 flex flex-col gap-4 flex-1 justify-between">
+                <div class="player-body p-4 sm:p-5 flex flex-col gap-4 flex-1 justify-between">
                     <!-- CRT Screen split into Text Display & Visualizer Canvas -->
                     <div class="crt-screen h-24 sm:h-32 p-4 flex gap-4">
                         <!-- Left panel (Text info & timeline) -->
@@ -748,7 +756,7 @@
         </div>
 
         <!-- Fila Inferior (Tabs & Playlist) -->
-        <div class="pixel-window w-full mt-2 p-4 flex flex-col">
+        <div class="bottom-row-panels pixel-window w-full mt-2 p-4 flex flex-col">
             <div class="flex flex-col gap-2 mb-2 px-1">
                 <div class="flex justify-between items-center text-[length:var(--fz-micro)] font-bold">
                     <div class="flex gap-1">
