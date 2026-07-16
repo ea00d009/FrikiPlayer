@@ -84,6 +84,18 @@ Ventana flotante de renderizado vectorial dedicada a generar animaciones complej
 
 ## ✨ Mejoras recientes de UI/UX
 
+### Gestión de Ventanas y Escritorio
+* **Sistema Magnético (Window Snapping)**: Las ventanas flotantes ahora cuentan con un sistema de colisión inteligente. Al arrastrarlas cerca de los bordes de la pantalla o de otras ventanas, se pegarán magnéticamente manteniendo una separación perfecta de 8 píxeles.
+* **Arrastre en Grupo**: Si dos o más ventanas están pegadas entre sí, arrastrar una de ellas moverá el grupo completo respetando sus posiciones relativas.
+* **Estado Activo/Inactivo**: El gestor de ventanas ahora destaca visualmente la ventana que tiene el foco (activa) oscureciendo las barras de título de las ventanas inactivas, usando un comportamiento idéntico a los sistemas operativos clásicos.
+
+### Mejoras Estéticas y Retro
+* **Marquesina Clásica**: El título principal del reproductor ahora se desplaza de forma continua hacia la izquierda utilizando la clásica y nostálgica etiqueta `<marquee>`.
+* **Ventana de Configuración Aislada**: Los selectores de Tema y Tipografía se han movido a su propia ventana flotante (`⚙️ CFG`), limpiando la barra de título principal para un look más realista.
+
+### Controles de Audio Expandidos
+* **Balance Estéreo (L-R)**: Se añadió un control de paneo estéreo (`StereoPannerNode`) dentro del panel extendido del volumen (Knob), permitiendo balancear la salida de audio entre los canales izquierdo y derecho.
+
 ### Botonera de control estabilizada
 * Los 6 botones de control mantienen una **altura uniforme**, independientemente de los emojis o texto de cada botón.
 * El botón `PLAY/PAUSE` tiene un **ancho fijo** para evitar desplazamientos laterales molestos en la interfaz al cambiar de estado.

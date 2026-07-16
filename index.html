@@ -319,11 +319,20 @@
             box-shadow: inset -1px -1px 0px var(--win-border-light), inset 1px 1px 0px var(--win-border-dark) !important;
         }
 
+        .window-active .window-header {
+            background: var(--header-bg) !important;
+            color: var(--header-text) !important;
+        }
+
+        .window-inactive .window-header,
+        .pixel-window:not(.window-active) .window-header {
+            background: var(--win-border-dark) !important;
+            color: var(--win-border-light) !important;
+        }
+
         .window-header {
-            background: var(--header-bg);
-            color: var(--header-text);
             border-bottom: 2px solid var(--win-border-black);
-            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+            transition: background-color 0.15s, color 0.15s, border-color 0.3s;
         }
 
         .crt-screen {
@@ -632,48 +641,27 @@
     </div>
 
     <!-- FrikiPlayer main application container -->
-    <div id="player-app" class="w-full max-w-3xl flex flex-col shadow-2xl z-20">
+    <div id="player-app" class="w-max max-w-3xl flex flex-col shadow-2xl z-20">
 
         <!-- Fila Superior: Controles Principales + Volumen -->
         <div class="flex flex-col md:flex-row items-stretch gap-2 w-full min-w-0">
 
             <!-- Panel Principal (Header + CRT + Botones) -->
-            <div class="pixel-window flex-1 flex flex-col min-w-[480px]">
+            <div class="pixel-window flex-1 flex flex-col min-w-[510px]">
                 <!-- Barra de título -->
                 <div class="window-header px-3 py-2 flex flex-wrap justify-between items-center cursor-move gap-y-2">
-                    <div class="flex items-center gap-2 min-w-0 flex-1 mr-2 pointer-events-none">
-                        <span class="text-[length:var(--fz-tiny)] sm:text-[length:var(--fz-small)] truncate block w-full">💾
-                            FrikiPlayer_v1.0.exe</span>
+                    <div class="flex items-center gap-2 min-w-0 flex-1 mr-2 pointer-events-none overflow-hidden">
+                        <marquee scrollamount="4" class="pl-1 text-[length:var(--fz-tiny)] sm:text-[length:var(--fz-small)] whitespace-nowrap">💾 FrikiPlayer_v1.0.exe</marquee>
                     </div>
                     <div class="flex gap-1 items-center shrink-0 ml-auto">
-                        <select id="font-selector"
-                            class="pixel-btn text-[length:var(--fz-micro)] py-1 px-0.5 outline-none max-w-[85px] sm:max-w-[130px] truncate"
-                            title="Tipografía">
-                            <option value="press">8-Bit (Normal)</option>
-                            <option value="press-large">8-Bit (Grande)</option>
-                            <option value="vt323">DOS (Normal)</option>
-                            <option value="vt323-large">DOS (Grande)</option>
-                        </select>
-                        <select id="theme-selector"
-                            class="pixel-btn text-[length:var(--fz-micro)] py-1 px-0.5 outline-none max-w-[85px] sm:max-w-[130px] truncate"
-                            title="Tema Visual">
-                            <option value="classic">Clásico</option>
-                            <option value="dark">Dark Mode</option>
-                            <option value="hacker">Terminal</option>
-                            <option value="vaporwave">Vaporwave</option>
-                            <option value="hotdog">Hot Dog (Win 3.1)</option>
-                            <option value="gameboy">GameBoy</option>
-                            <option value="hercules">Monitor Hércules</option>
-                            <option value="aimp">AIMP Classic (Amber)</option>
-                            <option value="winamp">Winamp Bento (Cyan)</option>
-                            <option value="wmp">WMP 11 (Vista Aero)</option>
-                        </select>
                         <button id="btn-toggle-volume" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold active-toggle"
                             title="Mostrar/Ocultar Volumen">🔊 VOL</button>
                         <button id="btn-open-eq" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold"
                             title="Equalizador Grafico">🎛️ EQ</button>
                         <button id="btn-open-avs" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold"
                             title="Visualizador AVS">✨ AVS</button>
+                        <button id="btn-open-config" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold"
+                            title="Configuración">⚙️ CFG</button>
                         <button id="btn-minimize" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold">_</button>
                     </div>
                 </div>
@@ -727,9 +715,13 @@
 
             <!-- Panel de Volumen Derecho (Gran Perilla) -->
             <div id="player-volume-panel" class="pixel-window w-48 shrink-0 flex flex-col">
-                <div class="window-header px-2 py-1 flex justify-between items-center bg-[var(--header-bg)] text-[var(--header-text)] text-[10px] font-bold border-b-2 border-win-border-black">
-                    <span>VOLUMEN</span>
-                    <button id="btn-volume-close" class="pixel-btn px-1.5 py-0.5 text-[8px] font-bold" title="Cerrar Panel">X</button>
+                <div class="window-header px-3 py-2 flex justify-between items-center cursor-move">
+                    <div class="flex items-center gap-2 min-w-0 flex-1 pointer-events-none">
+                        <span class="text-[length:var(--fz-tiny)] truncate">🎚️ Volumen</span>
+                    </div>
+                    <div class="flex gap-1 items-center shrink-0">
+                        <button id="btn-volume-close" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold" title="Cerrar Panel">X</button>
+                    </div>
                 </div>
                 <div class="flex-1 p-3 flex flex-col items-center justify-between gap-3 select-none">
                     <!-- LED Display -->
@@ -739,6 +731,12 @@
                     <!-- Big Knob Canvas (Contenedor Cuadrado) -->
                     <div class="relative w-full aspect-square flex items-center justify-center">
                         <canvas id="volume-knob-large" width="140" height="140" class="cursor-pointer block" title="Volumen (Arrastra)"></canvas>
+                    </div>
+                    <!-- Balance Slider -->
+                    <div class="w-full flex items-center justify-between gap-1 mb-1">
+                        <span class="text-[9px] font-bold text-[var(--list-text)]">L</span>
+                        <input id="balance-slider" type="range" min="-1" max="1" step="0.1" value="0" class="pixel-slider w-full cursor-pointer" title="Balance (L-R)">
+                        <span class="text-[9px] font-bold text-[var(--list-text)]">R</span>
                     </div>
                     <!-- Mute Button -->
                     <button id="btn-volume-mute" class="pixel-btn w-full py-1 text-[9px] font-bold" title="Silenciar">🔊 MUTE: OFF</button>
@@ -949,7 +947,7 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
         <!-- Title Bar -->
         <div class="window-header px-3 py-2 flex justify-between items-center cursor-move">
             <div class="flex items-center gap-2 min-w-0 flex-1 pointer-events-none">
-                <span class="text-[length:var(--fz-tiny)] truncate text-white">📝 Notepad - Lyrics_IT.txt</span>
+                <span class="text-[length:var(--fz-tiny)] truncate">📝 Notepad - Lyrics_IT.txt</span>
             </div>
             <div class="flex gap-1 items-center shrink-0">
                 <button id="btn-lyrics-close"
@@ -963,12 +961,52 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
         </div>
     </div>
 
+    <!-- Configuration Window -->
+    <div id="config-app" class="pixel-window w-full max-w-xs flex flex-col shadow-2xl z-30" style="display: none;">
+        <!-- Title Bar -->
+        <div class="window-header px-3 py-2 flex justify-between items-center cursor-move">
+            <div class="flex items-center gap-2 min-w-0 flex-1 pointer-events-none">
+                <span class="text-[length:var(--fz-tiny)] truncate">⚙️ Configuración</span>
+            </div>
+            <div class="flex gap-1 items-center shrink-0">
+                <button id="btn-config-close" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold">X</button>
+            </div>
+        </div>
+        <!-- Body -->
+        <div class="p-4 flex flex-col gap-4 text-[var(--list-text)] bg-[var(--list-bg)]">
+            <div class="flex flex-col gap-1.5">
+                <label for="theme-selector" class="text-[10px] font-bold">TEMA VISUAL:</label>
+                <select id="theme-selector" class="pixel-btn text-[11px] p-2 outline-none w-full">
+                    <option value="classic">Clásico</option>
+                    <option value="dark">Dark Mode</option>
+                    <option value="hacker">Terminal</option>
+                    <option value="vaporwave">Vaporwave</option>
+                    <option value="hotdog">Hot Dog (Win 3.1)</option>
+                    <option value="gameboy">GameBoy</option>
+                    <option value="hercules">Monitor Hércules</option>
+                    <option value="aimp">AIMP Classic (Amber)</option>
+                    <option value="winamp">Winamp Bento (Cyan)</option>
+                    <option value="wmp">WMP 11 (Vista Aero)</option>
+                </select>
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <label for="font-selector" class="text-[10px] font-bold">TIPOGRAFÍA:</label>
+                <select id="font-selector" class="pixel-btn text-[11px] p-2 outline-none w-full">
+                    <option value="press">8-Bit (Normal)</option>
+                    <option value="press-large">8-Bit (Grande)</option>
+                    <option value="vt323">DOS (Normal)</option>
+                    <option value="vt323-large">DOS (Grande)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
     <!-- Equalizer Window -->
     <div id="equalizer-app" class="pixel-window w-full max-w-lg flex flex-col shadow-2xl z-30" style="display: none;">
         <!-- Title Bar -->
         <div class="window-header px-3 py-2 flex justify-between items-center cursor-move">
             <div class="flex items-center gap-2 min-w-0 flex-1 pointer-events-none">
-                <span class="text-[length:var(--fz-tiny)] truncate text-white">🎛️ Equalizador Gráfico</span>
+                <span class="text-[length:var(--fz-tiny)] truncate">🎛️ Equalizador Gráfico</span>
             </div>
             <div class="flex gap-1 items-center shrink-0">
                 <button id="btn-eq-close" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold">X</button>
@@ -987,7 +1025,7 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 <div class="flex items-center gap-2">
                     <span class="font-bold text-[10px]">PRESETS:</span>
                     <select id="eq-presets-select"
-                        class="pixel-btn text-[9px] py-0.5 px-1 outline-none w-28 text-[var(--list-text)] bg-[var(--list-bg)]">
+                        class="pixel-btn text-[9px] py-0.5 px-1 outline-none w-36 text-[var(--list-text)] bg-[var(--list-bg)]">
                         <option value="flat">Plano (Flat)</option>
                         <option value="rock">Rock</option>
                         <option value="pop">Pop</option>
@@ -1417,6 +1455,7 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 this.isShuffle = false;
                 this.isRepeat = false;
                 this.volume = 80;
+                this.balance = 0;
 
                 // Supabase configuration
                 this.supabaseUrl = localStorage.getItem('supabase_url') || 'https://zzzwvypldqwikkkstwgs.supabase.co';
@@ -1595,6 +1634,10 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
 
             setVolume(vol) {
                 this.volume = Math.max(0, Math.min(100, vol));
+            }
+
+            setBalance(bal) {
+                this.balance = Math.max(-1, Math.min(1, bal));
             }
         }
 
@@ -2387,6 +2430,27 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
 
                 const eqApp = document.getElementById('equalizer-app');
 
+                const configApp = document.getElementById('config-app');
+                
+                // Toggle Config
+                document.getElementById('btn-open-config').addEventListener('click', () => {
+                    const isVisible = configApp.style.display === 'flex';
+                    if (isVisible) {
+                        this.sfx.playBeep(300, 'sawtooth', 0.15);
+                        configApp.style.display = 'none';
+                    } else {
+                        this.sfx.playBeep(700, 'square', 0.1);
+                        configApp.style.display = 'flex';
+                        this.centerWindow(configApp);
+                    }
+                });
+                
+                // Cerrar Config
+                document.getElementById('btn-config-close').addEventListener('click', () => {
+                    this.sfx.playBeep(300, 'sawtooth', 0.15);
+                    configApp.style.display = 'none';
+                });
+
                 // Toggle EQ
                 document.getElementById('btn-open-eq').addEventListener('click', () => {
                     const isVisible = eqApp.style.display === 'flex';
@@ -2452,6 +2516,7 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 this.initVolumeKnob();
                 this.initVolumeKnobLarge();
                 this.initVolumeControls();
+                this.initBalanceSlider();
                 
                 // Force initial canvas draw so they aren't blank
                 this.drawVolumeKnob();
@@ -3576,6 +3641,20 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 });
             }
 
+            initBalanceSlider() {
+                const slider = document.getElementById('balance-slider');
+                if (slider) {
+                    slider.value = this.model.balance;
+                    slider.addEventListener('input', (e) => {
+                        const bal = parseFloat(e.target.value);
+                        this.model.setBalance(bal);
+                        if (this.stereoPanner) {
+                            this.stereoPanner.pan.value = bal;
+                        }
+                    });
+                }
+            }
+
             initVolumeKnobLarge() {
                 const canvas = document.getElementById('volume-knob-large');
                 if (!canvas) return;
@@ -3881,6 +3960,9 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
         // 6. WINDOW DRAG & DESKTOP MANAGER
         // ==========================================
         class WindowManager {
+            static instances = [];
+            static zIndexCounter = 100;
+
             constructor(playerElement, headerElement) {
                 this.player = playerElement;
                 this.header = headerElement;
@@ -3890,6 +3972,7 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 this.startLeft = 0;
                 this.startTop = 0;
 
+                WindowManager.instances.push(this);
                 this.init();
             }
 
@@ -3906,6 +3989,10 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                     }
                 }, 100);
 
+                // Focus window when clicking anywhere inside it
+                this.player.addEventListener('mousedown', () => this.focus());
+                this.player.addEventListener('touchstart', () => this.focus(), { passive: true });
+
                 // Drag listeners
                 this.header.addEventListener('mousedown', (e) => this.dragStart(e));
                 this.header.addEventListener('touchstart', (e) => this.dragStart(e), { passive: false });
@@ -3917,11 +4004,58 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 window.addEventListener('touchend', () => this.dragEnd());
             }
 
+            focus() {
+                WindowManager.instances.forEach(win => {
+                    win.player.classList.remove('window-active');
+                    win.player.classList.add('window-inactive');
+                });
+                WindowManager.zIndexCounter++;
+                this.player.style.zIndex = WindowManager.zIndexCounter;
+                this.player.classList.remove('window-inactive');
+                this.player.classList.add('window-active');
+            }
+
+            getAttachedWindows() {
+                const attached = new Set([this]);
+                let added = true;
+                const tolerance = 5; // px
+                const GAP = 8; // Match the layout's gap-2 (8px)
+
+                while (added) {
+                    added = false;
+                    for (const win1 of attached) {
+                        const rect1 = win1.player.getBoundingClientRect();
+                        for (const win2 of WindowManager.instances) {
+                            if (attached.has(win2) || win2.player.style.display === 'none') continue;
+                            const rect2 = win2.player.getBoundingClientRect();
+
+                            // Overlap checks account for GAP allowance + tolerance
+                            const overlapX = rect1.left < rect2.right + tolerance + GAP && rect1.right > rect2.left - tolerance - GAP;
+                            const overlapY = rect1.top < rect2.bottom + tolerance + GAP && rect1.bottom > rect2.top - tolerance - GAP;
+                            
+                            const adjRight = Math.abs((rect1.right + GAP) - rect2.left) <= tolerance;
+                            const adjLeft = Math.abs(rect1.left - (rect2.right + GAP)) <= tolerance;
+                            const adjBottom = Math.abs((rect1.bottom + GAP) - rect2.top) <= tolerance;
+                            const adjTop = Math.abs(rect1.top - (rect2.bottom + GAP)) <= tolerance;
+
+                            if ((overlapY && (adjRight || adjLeft)) || (overlapX && (adjBottom || adjTop))) {
+                                attached.add(win2);
+                                added = true;
+                            }
+                        }
+                    }
+                }
+                attached.delete(this);
+                return Array.from(attached);
+            }
+
             dragStart(e) {
                 const tag = e.target.tagName.toLowerCase();
                 if (tag === 'button' || tag === 'select' || tag === 'option' || tag === 'input') {
                     return;
                 }
+
+                this.focus();
 
                 this.isDragging = true;
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -3932,6 +4066,12 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
 
                 this.startLeft = parseInt(this.player.style.left) || 0;
                 this.startTop = parseInt(this.player.style.top) || 0;
+
+                this.attachedWindows = this.getAttachedWindows();
+                this.attachedWindows.forEach(win => {
+                    win.startLeft = parseInt(win.player.style.left) || 0;
+                    win.startTop = parseInt(win.player.style.top) || 0;
+                });
 
                 if (e.cancelable) {
                     e.preventDefault();
@@ -3947,16 +4087,66 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 const deltaX = clientX - this.startX;
                 const deltaY = clientY - this.startY;
 
-                const newLeft = this.startLeft + deltaX;
-                const newTop = this.startTop + deltaY;
+                let newLeft = this.startLeft + deltaX;
+                let newTop = this.startTop + deltaY;
 
-                const minLeft = -this.player.offsetWidth + 50;
+                const rect = this.player.getBoundingClientRect();
+                const right = newLeft + rect.width;
+                const bottom = newTop + rect.height;
+                const snapDistance = 20;
+                const GAP = 8; // Match layout gaps
+
+                // Snap to screen edges
+                if (Math.abs(newLeft) < snapDistance) newLeft = 0;
+                if (Math.abs(newTop) < snapDistance) newTop = 0;
+                if (Math.abs(window.innerWidth - right) < snapDistance) newLeft = window.innerWidth - rect.width;
+                if (Math.abs(window.innerHeight - bottom) < snapDistance) newTop = window.innerHeight - rect.height;
+
+                // Snap to other windows
+                WindowManager.instances.forEach(win => {
+                    if (win === this || win.player.style.display === 'none' || this.attachedWindows.includes(win)) return;
+                    const otherRect = win.player.getBoundingClientRect();
+                    
+                    // Horizontal snapping (Top/Bottom boundaries overlap)
+                    if (newTop < otherRect.bottom + snapDistance && bottom > otherRect.top - snapDistance) {
+                        if (Math.abs(newLeft - (otherRect.right + GAP)) < snapDistance) newLeft = otherRect.right + GAP;
+                        if (Math.abs(right - (otherRect.left - GAP)) < snapDistance) newLeft = otherRect.left - GAP - rect.width;
+                        // Align tops/bottoms exact
+                        if (Math.abs(newTop - otherRect.top) < snapDistance) newTop = otherRect.top;
+                        if (Math.abs(bottom - otherRect.bottom) < snapDistance) newTop = otherRect.bottom - rect.height;
+                    }
+                    
+                    // Vertical snapping (Left/Right boundaries overlap)
+                    if (newLeft < otherRect.right + snapDistance && right > otherRect.left - snapDistance) {
+                        if (Math.abs(newTop - (otherRect.bottom + GAP)) < snapDistance) newTop = otherRect.bottom + GAP;
+                        if (Math.abs(bottom - (otherRect.top - GAP)) < snapDistance) newTop = otherRect.top - GAP - rect.height;
+                        // Align lefts/rights exact
+                        if (Math.abs(newLeft - otherRect.left) < snapDistance) newLeft = otherRect.left;
+                        if (Math.abs(right - otherRect.right) < snapDistance) newLeft = otherRect.right - rect.width;
+                    }
+                });
+
+                const minLeft = -rect.width + 50;
                 const maxLeft = window.innerWidth - 50;
                 const minTop = 0;
-                const maxTop = window.innerHeight - 40; // keep buffer for desktop bottom
+                const maxTop = window.innerHeight - 40;
 
                 this.player.style.left = `${Math.max(minLeft, Math.min(maxLeft, newLeft))}px`;
                 this.player.style.top = `${Math.max(minTop, Math.min(maxTop, newTop))}px`;
+
+                // Calculate actual delta applied to THIS window after bounds limiting and snapping
+                const finalLeft = parseInt(this.player.style.left);
+                const finalTop = parseInt(this.player.style.top);
+                const finalDeltaX = finalLeft - this.startLeft;
+                const finalDeltaY = finalTop - this.startTop;
+
+                // Apply identical delta to all snapped windows
+                this.attachedWindows.forEach(win => {
+                    win.player.style.left = `${win.startLeft + finalDeltaX}px`;
+                    win.player.style.top = `${win.startTop + finalDeltaY}px`;
+                    // Ensure attached windows stay on top with the leader
+                    win.player.style.zIndex = this.player.style.zIndex; 
+                });
 
                 if (e.cancelable) {
                     e.preventDefault();
@@ -4036,6 +4226,10 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
             const lyricsAppEl = document.getElementById('lyrics-app');
             const lyricsHeaderEl = lyricsAppEl.querySelector('.window-header');
             new WindowManager(lyricsAppEl, lyricsHeaderEl);
+
+            const configAppEl = document.getElementById('config-app');
+            const configHeaderEl = configAppEl.querySelector('.window-header');
+            new WindowManager(configAppEl, configHeaderEl);
 
             const eqAppEl = document.getElementById('equalizer-app');
             const eqHeaderEl = eqAppEl.querySelector('.window-header');

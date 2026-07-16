@@ -125,6 +125,7 @@ class PlayerModel {
     this.currentTrackIndex = 0;
     this.isPlaying = false;
     this.volume = 80;
+    this.balance = 0; // -1 (Left) to 1 (Right)
     this.isMuted = false;
     this.isShuffle = false;
     this.isLooping = false;
@@ -151,6 +152,11 @@ class PlayerModel {
 
   setVolume(vol) {
     this.volume = Math.max(0, Math.min(100, vol));
+    this.onStateChange();
+  }
+
+  setBalance(bal) {
+    this.balance = Math.max(-1, Math.min(1, bal));
     this.onStateChange();
   }
 
@@ -478,6 +484,7 @@ class PlayerController {
     this.audioCtx = null;
     this.audioSrc = null;
     this.analyser = null;
+    this.panner = null;
 
     this.bindEvents();
     this.initAudioEngine();
@@ -542,10 +549,24 @@ class PlayerController {
       this.analyser = this.audioCtx.createAnalyser();
       this.analyser.fftSize = 64;
       
+      // Stereo Panner Node for L/R Balance (if supported)
+      if (this.audioCtx.createStereoPanner) {
+        this.panner = this.audioCtx.createStereoPanner();
+        this.panner.pan.value = this.model.balance;
+      }
+      
       // Connect audio tag to our analyser
       this.audioSrc = this.audioCtx.createMediaElementSource(this.audio);
+      
+      // Chain: Source -> Analyser -> Panner -> Destination
       this.audioSrc.connect(this.analyser);
-      this.analyser.connect(this.audioCtx.destination);
+      
+      if (this.panner) {
+        this.analyser.connect(this.panner);
+        this.panner.connect(this.audioCtx.destination);
+      } else {
+        this.analyser.connect(this.audioCtx.destination);
+      }
       
       this.view.setupVisualizer(this.analyser);
     } catch (err) {
@@ -588,11 +609,25 @@ class PlayerController {
 
     // Volume Slider binding
     const volSlider = document.getElementById("volume-slider");
-    volSlider.addEventListener("input", (e) => {
-      const vol = parseInt(e.target.value);
-      this.model.setVolume(vol);
-      this.syncVolume();
-    });
+    if (volSlider) {
+      volSlider.addEventListener("input", (e) => {
+        const vol = parseInt(e.target.value);
+        this.model.setVolume(vol);
+        this.syncVolume();
+      });
+    }
+
+    // Balance Slider binding
+    const balSlider = document.getElementById("balance-slider");
+    if (balSlider) {
+      balSlider.addEventListener("input", (e) => {
+        const bal = parseFloat(e.target.value);
+        this.model.setBalance(bal);
+        if (this.panner) {
+          this.panner.pan.value = bal;
+        }
+      });
+    }
 
     // Mute button binding
     this.view.btnMuteToggle.addEventListener("click", clickSynth(() => {
