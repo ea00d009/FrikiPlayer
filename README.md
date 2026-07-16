@@ -82,28 +82,7 @@ Ventana flotante de renderizado vectorial dedicada a generar animaciones complej
 * **Modo Nube**: Si se ingresan las credenciales de Supabase (URL y Anon Key), el reproductor se conecta a una tabla de base de datos remota sincronizando las canciones en tiempo real con otros usuarios.
 * Formulario para añadir nuevas canciones especificando título, artista y ruta/URL del archivo MP3.
 
-### 6. Sistema Componente Hi-Fi Retro de los 90 (`retro-look.html`)
-Una interfaz alternativa e independiente de **FrikiPlayer** inspirada en un sistema modular de componentes de sonido apilables de los años 90 (estilo *rack system* como Technics, Pioneer, Aiwa). Se encuentra en el archivo [retro-look.html](file:///c:/Users/alvar/.gemini/antigravity-ide/scratch/Jukebox_IT_v3/retro-look.html) y ofrece:
-* **Diseño e Interfaz Auténtica**: Chasis oscuro estilo grafito, pernos decorativos metálicos en las esquinas, rieles laterales de aluminio cepillado y una pantalla con luz fluorescente de vacío (**VFD**) color verde-azul (teal) brillante con puntas en color ámbar.
-* **Módulo de CD (Compact Disc Player)**: Permite cargar discos (MP3 locales o colas de pistas), controles de reproducción interactivos y visualización de tiempo y estado en tiempo real.
-* **Sintonizador de Radio Digital AM/FM**: Sintonizador con indicador LED de recepción en estéreo, nivel de señal de antena simulada, frecuencias en MHz reales y nombres de estaciones emisoras nostálgicas precargadas.
-* **Pletina de Cassette Analógica (Auto-Reverse)**:
-  * Animación en tiempo real de los carretes de cinta giratorios al reproducir, avanzar o rebobinar.
-  * Mecanismo de **Auto-Reverse** para invertir la reproducción de lado (Lado A/B) automáticamente o al presionar el botón.
-  * Inserción y expulsión de cassette realista con apertura de compuerta visual.
-* **Procesador de Señal de Audio Analógico Avanzado (Web Audio API)**:
-  * **Efectos Vintage**: *Crap Bass Boost* (emula el refuerzo de graves de equipos portátiles baratos), *Hyper Bass* (potenciación profunda de sub-graves) y *Surround 3D* (simulación espacial tridimensional con líneas de retardo y desfase de canales).
-  * **High Speed Dubbing (Warp Drive)**: Aumenta la velocidad de reproducción simulando el copiado rápido de cassettes.
-  * **Modo Cassette & Tape Quality**: Permite degradar la señal de audio emulando el desgaste analógico físico de la cinta magnética. Modos de calidad:
-    * *Normal*: Reproducción limpia de cassette estándar.
-    * *Worn (Gastada)*: Pérdida leve de agudos y sutiles oscilaciones.
-    * *Damaged (Dañada)*: Distorsiones más audibles y crujidos ocasionales.
-    * *Vintage (Antigua)*: Sonido de fidelidad limitada al estilo de los años 70.
-    * *Chewed Up Tape (Masticada)*: Simula el clásico accidente de las pletinas que "se comían" la cinta, provocando oscilaciones drásticas en la afinación (*Wow & Flutter*) y variaciones extremas de ganancia y frecuencia.
-  * **Bolby B Type**: Reducción de ruido analógica que atenúa el siseo (*tape hiss*) de alta frecuencia cuando se reproduce en modo cassette.
-* **Ecualizador Gráfico de 10 Bandas**: Ecualizador con deslizadores independientes rediseñados y analizador de espectro gráfico (*Peak Level Meter*) reactivo de alta fidelidad con gradiente de color fósforo.
 
----
 
 ## ✨ Mejoras recientes de UI/UX
 
