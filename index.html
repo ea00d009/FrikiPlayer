@@ -1051,8 +1051,33 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                     <option value="winamp">Winamp Bento (Cyan)</option>
                     <option value="wmp">WMP 11 (Vista Aero)</option>
                     <option value="synthwave">Fucsia Synthwave</option>
+                    <option value="custom">Personalizado...</option>
                 </select>
             </div>
+            
+            <div id="custom-theme-panel" class="hidden flex flex-col gap-2 mt-1 p-2 border border-[var(--win-border-dark)] bg-[var(--win-bg)] text-[var(--win-text)]">
+                <div class="flex justify-between items-center">
+                    <label class="text-[9px]">FONDO:</label>
+                    <input type="color" id="ct-bg" value="#008080" class="w-8 h-6 cursor-pointer border-none bg-transparent">
+                </div>
+                <div class="flex justify-between items-center">
+                    <label class="text-[9px]">TEXTO:</label>
+                    <input type="color" id="ct-text" value="#ffffff" class="w-8 h-6 cursor-pointer border-none bg-transparent">
+                </div>
+                <div class="flex justify-between items-center">
+                    <label class="text-[9px]">LCD (FONDO):</label>
+                    <input type="color" id="ct-lcd-bg" value="#0D1A0D" class="w-8 h-6 cursor-pointer border-none bg-transparent">
+                </div>
+                <div class="flex justify-between items-center">
+                    <label class="text-[9px]">LCD (FÓSFORO):</label>
+                    <input type="color" id="ct-lcd-text" value="#33FF00" class="w-8 h-6 cursor-pointer border-none bg-transparent">
+                </div>
+                <div class="flex justify-between items-center">
+                    <label class="text-[9px]">RESALTE:</label>
+                    <input type="color" id="ct-accent" value="#000080" class="w-8 h-6 cursor-pointer border-none bg-transparent">
+                </div>
+            </div>
+
             <div class="flex flex-col gap-1.5">
                 <label for="font-selector" class="text-[10px] font-bold">TIPOGRAFÍA:</label>
                 <select id="font-selector" class="pixel-btn text-[11px] p-2 outline-none w-full">
@@ -1743,10 +1768,78 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
             }
 
             formatTime(seconds) {
-                if (isNaN(seconds) || !isFinite(seconds)) return "00:00";
-                const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-                const s = Math.floor(seconds % 60).toString().padStart(2, '0');
-                return `${m}:${s}`;
+                if (isNaN(seconds) || seconds < 0) return "00:00";
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+
+            // --- Custom Theme Management ---
+            updateCustomTheme() {
+                const bg = document.getElementById('ct-bg').value;
+                const text = document.getElementById('ct-text').value;
+                const lcdBg = document.getElementById('ct-lcd-bg').value;
+                const lcdText = document.getElementById('ct-lcd-text').value;
+                const accent = document.getElementById('ct-accent').value;
+
+                // Simple helper to darken/lighten slightly for borders
+                const root = document.documentElement;
+                root.style.setProperty('--bg-body', bg);
+                root.style.setProperty('--win-bg', bg);
+                root.style.setProperty('--header-bg', bg);
+                root.style.setProperty('--list-bg', bg);
+                root.style.setProperty('--controls-bg', bg);
+                root.style.setProperty('--btn-bg', bg);
+
+                root.style.setProperty('--win-text', text);
+                root.style.setProperty('--header-text', text);
+                root.style.setProperty('--list-text', text);
+                root.style.setProperty('--btn-text', text);
+
+                root.style.setProperty('--crt-bg', lcdBg);
+                root.style.setProperty('--crt-text', lcdText);
+                
+                root.style.setProperty('--list-active-bg', accent);
+                root.style.setProperty('--list-active-text', '#ffffff');
+                
+                // Borders
+                root.style.setProperty('--win-border-light', text);
+                root.style.setProperty('--win-border-dark', '#000000');
+                
+                // Redraw visuals that depend on theme vars
+                this.drawVisualizer(false, null);
+            }
+
+            saveCustomTheme() {
+                const customColors = {
+                    bg: document.getElementById('ct-bg').value,
+                    text: document.getElementById('ct-text').value,
+                    lcdBg: document.getElementById('ct-lcd-bg').value,
+                    lcdText: document.getElementById('ct-lcd-text').value,
+                    accent: document.getElementById('ct-accent').value
+                };
+                localStorage.setItem('jukebox-custom-colors', JSON.stringify(customColors));
+            }
+
+            loadCustomTheme() {
+                try {
+                    const saved = localStorage.getItem('jukebox-custom-colors');
+                    if (saved) {
+                        const customColors = JSON.parse(saved);
+                        if (customColors.bg) document.getElementById('ct-bg').value = customColors.bg;
+                        if (customColors.text) document.getElementById('ct-text').value = customColors.text;
+                        if (customColors.lcdBg) document.getElementById('ct-lcd-bg').value = customColors.lcdBg;
+                        if (customColors.lcdText) document.getElementById('ct-lcd-text').value = customColors.lcdText;
+                        if (customColors.accent) document.getElementById('ct-accent').value = customColors.accent;
+                    }
+                } catch (e) {
+                    console.error("Error loading custom colors", e);
+                }
+                this.applyCustomTheme();
+            }
+
+            applyCustomTheme() {
+                this.updateCustomTheme();
             }
 
             renderPlaylist(playlist, currentIndex) {
@@ -2536,11 +2629,38 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 });
 
                 document.getElementById('theme-selector').addEventListener('change', (e) => {
-                    document.documentElement.setAttribute('data-theme', e.target.value);
-                    localStorage.setItem('jukebox-theme', e.target.value);
+                    const themeName = e.target.value;
+                    document.documentElement.setAttribute('data-theme', themeName);
+                    localStorage.setItem('jukebox-theme', themeName);
                     this.sfx.playBeep(900, 'square', 0.1);
+                    
+                    const customPanel = document.getElementById('custom-theme-panel');
+                    if (themeName === 'custom') {
+                        customPanel.classList.remove('hidden');
+                        this.view.applyCustomTheme();
+                    } else {
+                        customPanel.classList.add('hidden');
+                        // Reset inline custom styles so css classes work
+                        document.documentElement.style = '';
+                    }
+
                     this.view.drawVisualizer(this.model.isPlaying, this.analyser);
                     this.drawVolumeKnob();
+                });
+
+                // Custom theme pickers
+                const customInputs = ['ct-bg', 'ct-text', 'ct-lcd-bg', 'ct-lcd-text', 'ct-accent'];
+                customInputs.forEach(id => {
+                    const input = document.getElementById(id);
+                    if (input) {
+                        input.addEventListener('input', () => {
+                            this.view.updateCustomTheme();
+                        });
+                        input.addEventListener('change', () => {
+                            this.view.updateCustomTheme();
+                            this.view.saveCustomTheme();
+                        });
+                    }
                 });
 
                 document.getElementById('font-selector').addEventListener('change', (e) => {
@@ -3543,6 +3663,11 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                     if (themeSelect) {
                         themeSelect.value = savedTheme;
                         document.documentElement.setAttribute('data-theme', savedTheme);
+                        
+                        if (savedTheme === 'custom') {
+                            document.getElementById('custom-theme-panel').classList.remove('hidden');
+                            this.view.loadCustomTheme();
+                        }
                     }
                 }
                 const savedFont = localStorage.getItem('jukebox-font');
