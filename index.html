@@ -1258,6 +1258,7 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                         <option value="tunnel">Túnel de Luz 3D</option>
                         <option value="kaleidoscope">Caleidoscopio Psicodélico</option>
                         <option value="starburst">Estrella Osciloscópica</option>
+                        <option value="matrix">Lluvia Matrix (Audio-reactiva)</option>
                     </select>
                 </div>
                 <div class="text-[8px] font-bold text-gray-500">TIP: Haz clic en la pantalla para cambiar el efecto
@@ -2216,10 +2217,45 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                             if (i === 0) this.avsCtx.moveTo(x, y);
                             else this.avsCtx.lineTo(x, y);
                         }
-                        this.avsCtx.strokeStyle = `hsl(${(baseHue + 120) % 360}, 100%, 75%)`;
                         this.avsCtx.shadowBlur = 4;
                         this.avsCtx.shadowColor = this.avsCtx.strokeStyle;
                         this.avsCtx.stroke();
+                    } else if (this.avsMode === 'matrix') {
+                        this.avsCtx.shadowBlur = 0;
+                        const fontSize = 14;
+                        if (!this.matrixDrops || this.matrixDrops.length !== Math.floor(w / fontSize)) {
+                            this.matrixDrops = Array(Math.floor(w / fontSize)).fill(0);
+                        }
+                        
+                        this.avsCtx.font = fontSize + 'px monospace';
+                        
+                        // Hue shifts with time and bass
+                        const hue = (baseHue + bassFactor * 2) % 360;
+                        
+                        for(let i = 0; i < this.matrixDrops.length; i++) {
+                            // 0x30A0 are Katakana characters
+                            const text = String.fromCharCode(0x30A0 + Math.random() * 96);
+                            
+                            const brightness = 50 + (trebleFactor / 255) * 50; 
+                            this.avsCtx.fillStyle = `hsl(${hue}, 100%, ${brightness}%)`;
+                            this.avsCtx.shadowBlur = (bassFactor / 255) * 10;
+                            this.avsCtx.shadowColor = this.avsCtx.fillStyle;
+                            
+                            const x = i * fontSize;
+                            const y = this.matrixDrops[i] * fontSize;
+                            this.avsCtx.fillText(text, x, y);
+                            
+                            // Probabilidad de avanzar basada en el volumen/actividad
+                            const activity = isPlaying ? (volumeFactor / 150) : 0.05;
+                            
+                            if(y > h && Math.random() > 0.95) {
+                                this.matrixDrops[i] = 0;
+                            }
+                            
+                            if (Math.random() < 0.2 + activity) {
+                                this.matrixDrops[i]++;
+                            }
+                        }
                     }
                     this.avsCtx.shadowBlur = 0;
                 };
@@ -2502,7 +2538,7 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 if (avsCanvas) {
                     avsCanvas.addEventListener('click', () => {
                         this.sfx.playBeep(600, 'triangle', 0.08);
-                        const modes = ['particles', 'tunnel', 'kaleidoscope', 'starburst'];
+                        const modes = ['particles', 'tunnel', 'kaleidoscope', 'starburst', 'matrix'];
                         const currentMode = this.view.avsMode || 'particles';
                         const nextIndex = (modes.indexOf(currentMode) + 1) % modes.length;
                         const nextMode = modes[nextIndex];
