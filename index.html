@@ -2453,7 +2453,7 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                         const appContainer = document.getElementById("player-app");
                         appContainer.classList.toggle("winshade-mode");
                         
-                        const activeTrack = this.model.getActiveTrack();
+                        const activeTrack = this.model.getCurrentTrack();
                         if (activeTrack) {
                             this.view.updateDisplay(activeTrack, this.model.isPlaying);
                         } else {
