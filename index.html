@@ -2563,6 +2563,7 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
 
                 // Inicializar UI con carga asíncrona
                 this.initPlaylistLoad();
+                this.initSearch();
 
                 // Active dynamic visualizer loops
                 this.view.drawVisualizer(false, null);
@@ -4259,7 +4260,6 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 });
                 
                 this.updateTunerUI();
-                this.initSearch();
             }
 
             initSearch() {
@@ -4284,9 +4284,11 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                     
                     filteredIndices.forEach((playlistIndex, i) => {
                         const track = this.model.playlist[playlistIndex];
+                        const artist = track.artist || 'Desconocido';
+                        const title = track.title || 'Pista desconocida';
                         const li = document.createElement('div');
                         li.className = `p-1 cursor-pointer transition-colors text-[length:var(--fz-tiny)] truncate ${i === selectedSearchIndex ? 'bg-[var(--list-active-bg)] text-[var(--list-active-text)]' : 'hover:bg-[var(--list-hover)]'}`;
-                        li.textContent = `${playlistIndex + 1}. ${track.artist} - ${track.title}`;
+                        li.textContent = `${playlistIndex + 1}. ${artist} - ${title}`;
                         
                         li.addEventListener('click', () => {
                             selectedSearchIndex = i;
@@ -4317,7 +4319,9 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                         const query = e.target.value.toLowerCase();
                         filteredIndices = [];
                         this.model.playlist.forEach((track, index) => {
-                            const searchStr = `${track.artist} ${track.title}`.toLowerCase();
+                            const artist = track.artist || '';
+                            const title = track.title || '';
+                            const searchStr = `${artist} ${title}`.toLowerCase();
                             if (searchStr.includes(query)) {
                                 filteredIndices.push(index);
                             }
