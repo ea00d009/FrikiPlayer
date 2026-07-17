@@ -2363,6 +2363,62 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 document.getElementById('btn-shuffle').addEventListener('click', () => this.handleShuffle());
                 document.getElementById('btn-repeat').addEventListener('click', () => this.handleRepeat());
 
+                // Winshade toggle
+                const btnWinshade = document.getElementById("btn-winshade");
+                if (btnWinshade) {
+                    btnWinshade.addEventListener("click", () => {
+                        this.sfx.playBeep(400, 'square', 0.1);
+                        const appContainer = document.getElementById("player-app");
+                        appContainer.classList.toggle("winshade-mode");
+                    });
+                }
+
+                // Global Keyboard Shortcuts
+                document.addEventListener("keydown", (e) => {
+                    // Ignorar si está en un input
+                    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+                    
+                    switch(e.key.toLowerCase()) {
+                        case 'z': this.handlePrev(); break;
+                        case 'x': 
+                            if (!this.model.isPlaying) this.handlePlayToggle(); 
+                            break;
+                        case 'c': 
+                            if (this.model.isPlaying) this.handlePlayToggle(); 
+                            break;
+                        case 'v': this.handleStop(); break;
+                        case 'b': this.handleNext(); break;
+                        case 'arrowup':
+                            e.preventDefault();
+                            this.model.volume = Math.min(100, this.model.volume + 5);
+                            this.audio.volume = this.model.volume / 100;
+                            this.drawVolumeKnob();
+                            const vSlider = document.getElementById('volume-knob');
+                            if (vSlider) vSlider.value = this.model.volume;
+                            break;
+                        case 'arrowdown':
+                            e.preventDefault();
+                            this.model.volume = Math.max(0, this.model.volume - 5);
+                            this.audio.volume = this.model.volume / 100;
+                            this.drawVolumeKnob();
+                            const vSliderDown = document.getElementById('volume-knob');
+                            if (vSliderDown) vSliderDown.value = this.model.volume;
+                            break;
+                        case 'arrowright':
+                            e.preventDefault();
+                            if (this.audio.duration) {
+                                this.audio.currentTime = Math.min(this.audio.duration, this.audio.currentTime + 5);
+                            }
+                            break;
+                        case 'arrowleft':
+                            e.preventDefault();
+                            if (this.audio.duration) {
+                                this.audio.currentTime = Math.max(0, this.audio.currentTime - 5);
+                            }
+                            break;
+                    }
+                });
+
                 document.getElementById('theme-selector').addEventListener('change', (e) => {
                     document.documentElement.setAttribute('data-theme', e.target.value);
                     localStorage.setItem('jukebox-theme', e.target.value);
