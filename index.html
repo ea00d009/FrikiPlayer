@@ -250,6 +250,29 @@
             --controls-bg: #0e131d;
         }
 
+        [data-theme="synthwave"] {
+            --bg-body: #1c0028;
+            --bg-dots: #380054;
+            --win-bg: #2b0042;
+            --win-text: #ff00ea;
+            --win-border-light: #ff7df4;
+            --win-border-dark: #12001c;
+            --win-border-black: #000000;
+            --header-bg: #5f0093;
+            --header-text: #00ffff;
+            --list-bg: #1c0028;
+            --list-text: #00ffff;
+            --list-hover: #43006a;
+            --list-active-bg: #ff00ea;
+            --list-active-text: #000000;
+            --btn-bg: #380054;
+            --btn-text: #00ffff;
+            --btn-hover: #5f0093;
+            --crt-bg: #0a0012;
+            --crt-text: #ff00ea;
+            --controls-bg: #200032;
+        }
+
         [data-font="press-large"] {
             --fz-micro: 10px;
             --fz-mini: 12px;
@@ -710,6 +733,7 @@
                                 </div>
                             </div>
                             <div class="flex items-center gap-2 mt-2">
+                                <canvas id="mini-eq-canvas" class="w-12 h-4 block" width="48" height="16"></canvas>
                                 <span id="time-current" class="text-[length:var(--fz-micro)] crt-text-dim">00:00</span>
                                 <div id="progress-container" class="flex-1 h-2 border crt-border crt-bg-dim cursor-pointer relative">
                                     <div id="progress-bar" class="h-full crt-bg-solid w-0 transition-all duration-100 pointer-events-none"></div>
@@ -1027,6 +1051,7 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                     <option value="aimp">AIMP Classic (Amber)</option>
                     <option value="winamp">Winamp Bento (Cyan)</option>
                     <option value="wmp">WMP 11 (Vista Aero)</option>
+                    <option value="synthwave">Fucsia Synthwave</option>
                 </select>
             </div>
             <div class="flex flex-col gap-1.5">
@@ -1842,9 +1867,14 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                     cancelAnimationFrame(this.animationId);
                 }
 
+                const miniEqCanvas = document.getElementById('mini-eq-canvas');
+                const miniEqCtx = miniEqCanvas ? miniEqCanvas.getContext('2d') : null;
+
                 // Prepare frequency buffer if analyser is available
                 let dataArray = null;
                 let bufferLength = 0;
+                let miniDataArray = null;
+                
                 if (analyser) {
                     bufferLength = analyser.frequencyBinCount;
                     dataArray = new Uint8Array(bufferLength);
@@ -1858,6 +1888,10 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                     // Clear background
                     this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
                     this.ctx.fillRect(0, 0, w, h);
+
+                    if (miniEqCtx) {
+                        miniEqCtx.clearRect(0, 0, miniEqCanvas.width, miniEqCanvas.height);
+                    }
 
                     // Extract CRT colors
                     const crtColor = getComputedStyle(document.documentElement).getPropertyValue('--crt-text').trim() || '#33FF00';
@@ -1996,6 +2030,43 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                                     }
                                     this.ctx.fillRect(i * barWidth + 1, y, barWidth - 2, segmentHeight - 2);
                                 }
+                            }
+                        }
+                    }
+
+                    // --- Draw Mini EQ ---
+                    if (miniEqCtx) {
+                        const m_w = miniEqCanvas.width;
+                        const m_h = miniEqCanvas.height;
+                        
+                        miniEqCtx.globalAlpha = 1.0;
+                        miniEqCtx.fillStyle = crtColor;
+                        
+                        const numBars = 12; // Typical Winamp style mini EQ has ~12-15 bars
+                        const barW = Math.max(1, Math.floor(m_w / numBars) - 1);
+                        const step = analyser ? Math.floor((bufferLength / 2) / numBars) : 1;
+                        
+                        if (isPlaying && analyser) {
+                            if (mode === 'oscilloscope') {
+                                if (!miniDataArray) miniDataArray = new Uint8Array(analyser.frequencyBinCount);
+                                analyser.getByteFrequencyData(miniDataArray);
+                            } else {
+                                miniDataArray = dataArray;
+                            }
+                            
+                            for (let i = 0; i < numBars; i++) {
+                                let sum = 0;
+                                for (let j = 0; j < step; j++) {
+                                    sum += miniDataArray[i * step + j];
+                                }
+                                const avg = sum / step;
+                                const barH = Math.max(1, (avg / 255) * m_h);
+                                miniEqCtx.fillRect(i * (barW + 1), m_h - barH, barW, barH);
+                            }
+                        } else {
+                            // Draw flat line when stopped/paused
+                            for (let i = 0; i < numBars; i++) {
+                                miniEqCtx.fillRect(i * (barW + 1), m_h - 2, barW, 2);
                             }
                         }
                     }
