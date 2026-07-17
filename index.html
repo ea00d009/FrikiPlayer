@@ -1942,7 +1942,8 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                             const numBars = 16;
                             const barWidth = w / numBars;
                             for (let i = 0; i < numBars; i++) {
-                                const freqIndex = Math.floor((i / numBars) * bufferLength);
+                                // Cut off empty high frequencies by using only half the buffer
+                                const freqIndex = Math.floor(Math.pow(i / numBars, 1.2) * (bufferLength * 0.5));
                                 const val = dataArray[freqIndex];
                                 const barHeight = (val / 255) * h * 0.85;
                                 this.ctx.fillRect(i * barWidth + 1, h - barHeight, barWidth - 2, barHeight);
@@ -1974,7 +1975,8 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                             const numSegments = 10;
                             const segmentHeight = h / numSegments;
                             for (let i = 0; i < numBars; i++) {
-                                const freqIndex = Math.floor((i / numBars) * bufferLength);
+                                // Cut off empty high frequencies by using only half the buffer
+                                const freqIndex = Math.floor(Math.pow(i / numBars, 1.2) * (bufferLength * 0.5));
                                 const val = dataArray[freqIndex];
                                 const barHeight = (val / 255) * h * 0.85;
                                 const activeSegments = Math.round((barHeight / h) * numSegments);
