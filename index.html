@@ -1757,12 +1757,7 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 
                 const titleMarquee = document.getElementById('main-title-marquee');
                 if (titleMarquee) {
-                    const isWinshade = document.getElementById('player-app').classList.contains('winshade-mode');
-                    if (isWinshade) {
-                        titleMarquee.innerText = `${track.artist} - ${track.title} *** `;
-                    } else {
-                        titleMarquee.innerText = "💾 FrikiPlayer_v1.0.exe";
-                    }
+                    titleMarquee.innerText = `${track.artist} - ${track.title} *** `;
                 }
             }
 
@@ -1785,12 +1780,7 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 
                 const titleMarquee = document.getElementById('main-title-marquee');
                 if (titleMarquee) {
-                    const isWinshade = document.getElementById('player-app').classList.contains('winshade-mode');
-                    if (isWinshade) {
-                        titleMarquee.innerText = "FrikiPlayer - READY";
-                    } else {
-                        titleMarquee.innerText = "💾 FrikiPlayer_v1.0.exe";
-                    }
+                    titleMarquee.innerText = "💾 FrikiPlayer_v1.0.exe";
                 }
             }
 
@@ -2452,8 +2442,10 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                         this.sfx.playBeep(400, 'square', 0.1);
                         const appContainer = document.getElementById("player-app");
                         appContainer.classList.toggle("winshade-mode");
-                        if (this.model.isPlaying) {
-                            this.view.updateDisplay(this.model.getActiveTrack(), true);
+                        
+                        const activeTrack = this.model.getActiveTrack();
+                        if (activeTrack) {
+                            this.view.updateDisplay(activeTrack, this.model.isPlaying);
                         } else {
                             this.view.resetDisplay();
                         }
