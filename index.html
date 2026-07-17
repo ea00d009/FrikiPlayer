@@ -625,8 +625,12 @@
         /* Winshade Mode */
         #player-app.winshade-mode .player-body,
         #player-app.winshade-mode #player-volume-panel,
-        #player-app.winshade-mode .bottom-row-panels {
+        #player-app.winshade-mode .bottom-row-panels,
+        #player-app.winshade-mode #normal-header-buttons {
             display: none !important;
+        }
+        #player-app.winshade-mode #winshade-header-buttons {
+            display: flex !important;
         }
     </style>
 </head>
@@ -658,19 +662,28 @@
                 <!-- Barra de título -->
                 <div class="window-header px-3 py-2 flex flex-wrap justify-between items-center cursor-move gap-y-2">
                     <div class="flex items-center gap-2 min-w-0 flex-1 mr-2 pointer-events-none overflow-hidden">
-                        <marquee scrollamount="4" class="pl-1 text-[length:var(--fz-tiny)] sm:text-[length:var(--fz-small)] whitespace-nowrap">💾 FrikiPlayer_v1.0.exe</marquee>
+                        <marquee id="main-title-marquee" scrollamount="4" class="pl-1 text-[length:var(--fz-tiny)] sm:text-[length:var(--fz-small)] whitespace-nowrap">💾 FrikiPlayer_v1.0.exe</marquee>
                     </div>
                     <div class="flex gap-1 items-center shrink-0 ml-auto">
-                        <button id="btn-toggle-volume" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold active-toggle"
-                            title="Mostrar/Ocultar Volumen">🔊 VOL</button>
-                        <button id="btn-open-eq" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold"
-                            title="Equalizador Grafico">🎛️ EQ</button>
-                        <button id="btn-open-avs" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold"
-                            title="Visualizador AVS">✨ AVS</button>
-                        <button id="btn-open-art" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold"
-                            title="Carátula (Cover Art)">🖼️ ART</button>
-                        <button id="btn-open-config" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold"
-                            title="Configuración">⚙️ CFG</button>
+                        <div id="normal-header-buttons" class="flex gap-1 items-center shrink-0">
+                            <button id="btn-toggle-volume" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold active-toggle"
+                                title="Mostrar/Ocultar Volumen">🔊 VOL</button>
+                            <button id="btn-open-eq" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold"
+                                title="Equalizador Grafico">🎛️ EQ</button>
+                            <button id="btn-open-avs" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold"
+                                title="Visualizador AVS">✨ AVS</button>
+                            <button id="btn-open-art" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold"
+                                title="Carátula (Cover Art)">🖼️ ART</button>
+                            <button id="btn-open-config" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold"
+                                title="Configuración">⚙️ CFG</button>
+                        </div>
+                        <div id="winshade-header-buttons" class="hidden gap-1 items-center shrink-0 mr-1">
+                            <button id="ws-btn-prev" class="pixel-btn px-1.5 py-1 text-[length:var(--fz-tiny)] font-bold" title="Anterior">&#9664;</button>
+                            <button id="ws-btn-play" class="pixel-btn px-1.5 py-1 text-[length:var(--fz-tiny)] font-bold btn-text-blue" title="Reproducir">&#9654;</button>
+                            <button id="ws-btn-pause" class="pixel-btn px-1.5 py-1 text-[length:var(--fz-tiny)] font-bold text-gray-500" title="Pausar">||</button>
+                            <button id="ws-btn-stop" class="pixel-btn px-1.5 py-1 text-[length:var(--fz-tiny)] font-bold btn-text-red" title="Detener">&#9632;</button>
+                            <button id="ws-btn-next" class="pixel-btn px-1.5 py-1 text-[length:var(--fz-tiny)] font-bold" title="Siguiente">&#9654;</button>
+                        </div>
                         <button id="btn-winshade" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold" title="Mini-modo Winshade">^</button>
                         <button id="btn-minimize" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold">_</button>
                     </div>
@@ -1738,6 +1751,19 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                     this.status.classList.remove('status-blink');
                 }
                 this.btnPlay.innerHTML = isPlaying ? '&#10074;&#10074; PAUSE' : '&#9654; PLAY';
+
+                const wsPlayBtn = document.getElementById('ws-btn-play');
+                if (wsPlayBtn) wsPlayBtn.innerHTML = isPlaying ? '||' : '&#9654;';
+                
+                const titleMarquee = document.getElementById('main-title-marquee');
+                if (titleMarquee) {
+                    const isWinshade = document.getElementById('player-app').classList.contains('winshade-mode');
+                    if (isWinshade) {
+                        titleMarquee.innerText = `${track.artist} - ${track.title} *** `;
+                    } else {
+                        titleMarquee.innerText = "💾 FrikiPlayer_v1.0.exe";
+                    }
+                }
             }
 
             resetDisplay() {
@@ -1753,6 +1779,19 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 this.timeCurrent.innerText = "00:00";
                 this.timeTotal.innerText = "00:00";
                 this.updateBitrate(null);
+
+                const wsPlayBtn = document.getElementById('ws-btn-play');
+                if (wsPlayBtn) wsPlayBtn.innerHTML = '&#9654;';
+                
+                const titleMarquee = document.getElementById('main-title-marquee');
+                if (titleMarquee) {
+                    const isWinshade = document.getElementById('player-app').classList.contains('winshade-mode');
+                    if (isWinshade) {
+                        titleMarquee.innerText = "FrikiPlayer - READY";
+                    } else {
+                        titleMarquee.innerText = "💾 FrikiPlayer_v1.0.exe";
+                    }
+                }
             }
 
             updateBitrate(bitrate) {
@@ -2399,6 +2438,13 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 document.getElementById('btn-shuffle').addEventListener('click', () => this.handleShuffle());
                 document.getElementById('btn-repeat').addEventListener('click', () => this.handleRepeat());
 
+                // Winshade Extra Bindings
+                document.getElementById('ws-btn-play').addEventListener('click', () => this.handlePlayToggle());
+                document.getElementById('ws-btn-pause').addEventListener('click', () => this.handlePlayToggle());
+                document.getElementById('ws-btn-stop').addEventListener('click', () => this.handleStop());
+                document.getElementById('ws-btn-next').addEventListener('click', () => this.handleNext());
+                document.getElementById('ws-btn-prev').addEventListener('click', () => this.handlePrev());
+
                 // Winshade toggle
                 const btnWinshade = document.getElementById("btn-winshade");
                 if (btnWinshade) {
@@ -2406,6 +2452,11 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                         this.sfx.playBeep(400, 'square', 0.1);
                         const appContainer = document.getElementById("player-app");
                         appContainer.classList.toggle("winshade-mode");
+                        if (this.model.isPlaying) {
+                            this.view.updateDisplay(this.model.getActiveTrack(), true);
+                        } else {
+                            this.view.resetDisplay();
+                        }
                     });
                 }
 
