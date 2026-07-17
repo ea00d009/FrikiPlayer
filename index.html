@@ -1757,7 +1757,12 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 
                 const titleMarquee = document.getElementById('main-title-marquee');
                 if (titleMarquee) {
-                    titleMarquee.innerText = `${track.artist} - ${track.title} *** `;
+                    const isWinshade = document.getElementById('player-app').classList.contains('winshade-mode');
+                    if (isWinshade) {
+                        titleMarquee.innerText = `${track.artist} - ${track.title} *** `;
+                    } else {
+                        titleMarquee.innerText = "💾 FrikiPlayer_v1.0.exe";
+                    }
                 }
             }
 
@@ -1780,7 +1785,12 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 
                 const titleMarquee = document.getElementById('main-title-marquee');
                 if (titleMarquee) {
-                    titleMarquee.innerText = "💾 FrikiPlayer_v1.0.exe";
+                    const isWinshade = document.getElementById('player-app').classList.contains('winshade-mode');
+                    if (isWinshade) {
+                        titleMarquee.innerText = "FrikiPlayer - READY";
+                    } else {
+                        titleMarquee.innerText = "💾 FrikiPlayer_v1.0.exe";
+                    }
                 }
             }
 
