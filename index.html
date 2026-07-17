@@ -1090,6 +1090,24 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
         </div>
     </div>
 
+    <!-- Search / Jump to File Window -->
+    <div id="search-app" class="pixel-window w-full max-w-sm flex flex-col shadow-2xl z-40 fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" style="display: none;">
+        <div class="window-header px-3 py-2 flex justify-between items-center cursor-move">
+            <div class="flex items-center gap-2 min-w-0 flex-1 pointer-events-none">
+                <span class="text-[length:var(--fz-tiny)] truncate">🔍 Jump to file</span>
+            </div>
+            <div class="flex gap-1 items-center shrink-0">
+                <button id="btn-search-close" class="pixel-btn px-2 py-1 text-[length:var(--fz-tiny)] font-bold">X</button>
+            </div>
+        </div>
+        <div class="p-3 flex flex-col gap-2 select-none bg-[var(--list-bg)] text-[var(--list-text)]">
+            <input type="text" id="search-input" class="w-full pixel-btn px-2 py-1.5 text-[length:var(--fz-tiny)] outline-none bg-white text-black" placeholder="Buscar canción..." autocomplete="off">
+            <div id="search-results" class="border-2 shadow-[inset_-2px_-2px_0px_var(--win-border-dark)] h-40 overflow-y-auto p-1 mt-1 theme-list-container">
+                <!-- Search results injected here -->
+            </div>
+        </div>
+    </div>
+
     <!-- Equalizer Window -->
     <div id="equalizer-app" class="pixel-window w-full max-w-lg flex flex-col shadow-2xl z-30" style="display: none;">
         <!-- Title Bar -->
@@ -2623,6 +2641,20 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                             e.preventDefault();
                             if (this.audio.duration) {
                                 this.audio.currentTime = Math.max(0, this.audio.currentTime - 5);
+                            }
+                            break;
+                        case 'j':
+                            e.preventDefault();
+                            const searchApp = document.getElementById('search-app');
+                            if (searchApp) {
+                                searchApp.style.display = 'flex';
+                                const input = document.getElementById('search-input');
+                                if (input) {
+                                    input.value = '';
+                                    input.focus();
+                                    // Trigger input event to show all results initially
+                                    input.dispatchEvent(new Event('input'));
+                                }
                             }
                             break;
                     }
@@ -4227,6 +4259,104 @@ create policy "Allow public delete" on public.songs for delete using (true);</te
                 });
                 
                 this.updateTunerUI();
+                this.initSearch();
+            }
+
+            initSearch() {
+                const searchApp = document.getElementById('search-app');
+                const searchInput = document.getElementById('search-input');
+                const searchResults = document.getElementById('search-results');
+                const btnClose = document.getElementById('btn-search-close');
+                let filteredIndices = [];
+                let selectedSearchIndex = 0;
+
+                const closeSearch = () => {
+                    searchApp.style.display = 'none';
+                    this.sfx.playBeep(400, 'triangle', 0.1);
+                };
+
+                const renderResults = () => {
+                    searchResults.innerHTML = '';
+                    if (filteredIndices.length === 0) {
+                        searchResults.innerHTML = '<div class="p-2 text-[length:var(--fz-tiny)] opacity-50 text-center">No hay resultados</div>';
+                        return;
+                    }
+                    
+                    filteredIndices.forEach((playlistIndex, i) => {
+                        const track = this.model.playlist[playlistIndex];
+                        const li = document.createElement('div');
+                        li.className = `p-1 cursor-pointer transition-colors text-[length:var(--fz-tiny)] truncate ${i === selectedSearchIndex ? 'bg-[var(--list-active-bg)] text-[var(--list-active-text)]' : 'hover:bg-[var(--list-hover)]'}`;
+                        li.textContent = `${playlistIndex + 1}. ${track.artist} - ${track.title}`;
+                        
+                        li.addEventListener('click', () => {
+                            selectedSearchIndex = i;
+                            renderResults();
+                        });
+                        
+                        li.addEventListener('dblclick', () => {
+                            this.model.currentIndex = playlistIndex;
+                            this.model.isPlaying = true;
+                            this.loadAndPlayTrack();
+                            closeSearch();
+                        });
+                        
+                        searchResults.appendChild(li);
+                    });
+                    
+                    // Auto-scroll to selected
+                    const activeEl = searchResults.children[selectedSearchIndex];
+                    if (activeEl) {
+                        activeEl.scrollIntoView({ block: 'nearest' });
+                    }
+                };
+
+                if (btnClose) btnClose.addEventListener('click', closeSearch);
+
+                if (searchInput) {
+                    searchInput.addEventListener('input', (e) => {
+                        const query = e.target.value.toLowerCase();
+                        filteredIndices = [];
+                        this.model.playlist.forEach((track, index) => {
+                            const searchStr = `${track.artist} ${track.title}`.toLowerCase();
+                            if (searchStr.includes(query)) {
+                                filteredIndices.push(index);
+                            }
+                        });
+                        selectedSearchIndex = 0;
+                        renderResults();
+                    });
+
+                    searchInput.addEventListener('keydown', (e) => {
+                        if (e.key === 'Escape') {
+                            e.preventDefault();
+                            closeSearch();
+                        } else if (e.key === 'Enter') {
+                            e.preventDefault();
+                            if (filteredIndices.length > 0) {
+                                const realIndex = filteredIndices[selectedSearchIndex];
+                                this.model.currentIndex = realIndex;
+                                this.model.isPlaying = true;
+                                this.loadAndPlayTrack();
+                                closeSearch();
+                            }
+                        } else if (e.key === 'ArrowDown') {
+                            e.preventDefault();
+                            if (selectedSearchIndex < filteredIndices.length - 1) {
+                                selectedSearchIndex++;
+                                renderResults();
+                            }
+                        } else if (e.key === 'ArrowUp') {
+                            e.preventDefault();
+                            if (selectedSearchIndex > 0) {
+                                selectedSearchIndex--;
+                                renderResults();
+                            }
+                        }
+                    });
+                }
+                
+                // Initialize draggable for this window
+                this.view.initDraggable('search-app');
             }
 
             updateTunerUI() {
